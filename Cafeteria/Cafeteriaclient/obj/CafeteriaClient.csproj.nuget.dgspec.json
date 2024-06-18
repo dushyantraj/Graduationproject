@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/dushyantrajsharma/Graduationproject/Graduationproject/Cafeteria/Cafeteriaclient/MenuClient.csproj": {}
+    "/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/CafeteriaClient.csproj": {}
   },
   "projects": {
-    "/home/dushyantrajsharma/Graduationproject/Graduationproject/Cafeteria/Cafeteriaclient/MenuClient.csproj": {
+    "/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/CafeteriaClient.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/dushyantrajsharma/Graduationproject/Graduationproject/Cafeteria/Cafeteriaclient/MenuClient.csproj",
-        "projectName": "MenuClient",
-        "projectPath": "/home/dushyantrajsharma/Graduationproject/Graduationproject/Cafeteria/Cafeteriaclient/MenuClient.csproj",
+        "projectUniqueName": "/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/CafeteriaClient.csproj",
+        "projectName": "CafeteriaClient",
+        "projectPath": "/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/CafeteriaClient.csproj",
         "packagesPath": "/home/dushyantrajsharma/.nuget/packages/",
-        "outputPath": "/home/dushyantrajsharma/Graduationproject/Graduationproject/Cafeteria/Cafeteriaclient/obj/",
+        "outputPath": "/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/dushyantrajsharma/.nuget/NuGet/NuGet.Config"
