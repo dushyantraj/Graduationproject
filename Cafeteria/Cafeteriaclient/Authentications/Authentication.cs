@@ -1,8 +1,8 @@
 
 using System;
-using MenuClient.Communication;
+using CafeteriaClient.Communication;
 
-namespace MenuClient.Authentications
+namespace CafeteriaClient.Authentications
 {
     public static class Authentication
     {
