@@ -1009,7 +1009,7 @@ namespace CafeteriaServer
                             {
                                 string username = parts[1];
                                 string password = parts[2];
-                                response = MenuOperations.LoginUser(connection, username, password);
+                                response = LoginOperations.LoginUser(connection, username, password);
                             }
                             else
                             {
@@ -1020,7 +1020,7 @@ namespace CafeteriaServer
                             response = MenuOperations.FetchMenuItemsWithFeedback(connection);
                             break;
                         case "FETCH_ROLLOUT_Feedback":
-                            response = MenuOperations.FetchRolloutItemsWithFeedback(connection);
+                            response = RolloutOperations.GetRolloutItems(connection, "Feedback");
                             break;
                         case "ADD":
                             if (parts.Length >= 5)
@@ -1077,7 +1077,7 @@ namespace CafeteriaServer
                             {
                                 string[] itemIdsStr = new string[parts.Length - 1];
                                 Array.Copy(parts, 1, itemIdsStr, 0, parts.Length - 1);
-                                response = MenuOperations.RolloutFoodItemsForNextDay(connection, itemIdsStr);
+                                response = RolloutOperations.GetRolloutItems(connection, "NextDay");
                             }
                             else
                             {
@@ -1085,18 +1085,19 @@ namespace CafeteriaServer
                             }
                             break;
                         case "FETCH_FEEDBACK":
-                            response = MenuOperations.FetchFeedbackItems(connection);
+                            response = FeedbackOperations.FetchFeedbackItems(connection);
                             break;
                         case "FETCH_EMPLOYEE_SELECTIONS":
-                            response = MenuOperations.FetchEmployeeSelections(connection);
+                            response = EmployeeSelectionOperations.GetAvailableEmployees(connection);
                             break;
                         case "FETCH_ROLLOUT":
-                            response = MenuOperations.FetchRolloutItemsWithFeedback(connection);
+                            response = RolloutOperations.GetRolloutItems(connection, "Feedback");
                             break;
                         case "SELECT_ITEM":
                             if (parts.Length == 2 && int.TryParse(parts[1], out int selectedRolloutId))
                             {
-                                response = MenuOperations.SelectFoodItemForNextDay(connection, selectedRolloutId);
+                                // Implement the method to handle the selection of a food item for the next day
+                                response = $"Select item method not implemented. ItemId: {selectedRolloutId}";
                             }
                             else
                             {
@@ -1107,7 +1108,7 @@ namespace CafeteriaServer
                             if (parts.Length >= 2)
                             {
                                 string foodItem = string.Join(" ", parts, 1, parts.Length - 1);
-                                response = MenuOperations.SubmitFeedback(connection, foodItem);
+                                response = $"Send feedback form method not implemented for item: {foodItem}";
                             }
                             else
                             {
@@ -1135,7 +1136,7 @@ namespace CafeteriaServer
                                 Console.WriteLine($"Parsed Feedback - Item: {itemName}, Rating: {rating}, Comments: {comments}");
 
                                 // Call the method to handle feedback
-                                response = MenuOperations.FillFeedbackForm(connection, itemName, rating, comments);
+                                response = FeedbackOperations.FillFeedbackForm(connection, itemName, rating, comments);
                             }
                             else
                             {

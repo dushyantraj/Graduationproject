@@ -1791,11 +1791,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/dushyantrajsharma/Cafeteria/CafeteriaServer/MenuServer.csproj",
+      "projectUniqueName": "/home/dushyantrajsharma/Graduationproject/Cafeteria/CafeteriaServer/MenuServer.csproj",
       "projectName": "MenuServer",
-      "projectPath": "/home/dushyantrajsharma/Cafeteria/CafeteriaServer/MenuServer.csproj",
+      "projectPath": "/home/dushyantrajsharma/Graduationproject/Cafeteria/CafeteriaServer/MenuServer.csproj",
       "packagesPath": "/home/dushyantrajsharma/.nuget/packages/",
-      "outputPath": "/home/dushyantrajsharma/Cafeteria/CafeteriaServer/obj/",
+      "outputPath": "/home/dushyantrajsharma/Graduationproject/Cafeteria/CafeteriaServer/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/dushyantrajsharma/.nuget/NuGet/NuGet.Config"
