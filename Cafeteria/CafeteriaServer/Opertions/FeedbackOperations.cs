@@ -55,6 +55,31 @@ namespace CafeteriaServer.Operations
                 }
             }
         }
+        public static string SubmitFeedback(MySqlConnection connection, string itemName)
+        {
+            try
+            {
+                itemName = itemName.Trim();
+
+                if (string.IsNullOrEmpty(itemName))
+                {
+                    return "Item name cannot be empty.";
+                }
+
+                string query = "INSERT INTO Feedback (item_name) VALUES (@itemName)";
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+                cmd.Parameters.AddWithValue("@itemName", itemName);
+
+                int rowsAffected = cmd.ExecuteNonQuery();
+
+                return rowsAffected > 0 ? "Feedback submitted successfully." : "Failed to submit feedback.";
+            }
+            catch (Exception ex)
+            {
+                return "Error submitting feedback: " + ex.Message;
+            }
+        }
+
 
         public static string FetchFeedbackItems(MySqlConnection connection)
         {

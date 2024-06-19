@@ -101,7 +101,7 @@
 //                                 response = "Invalid command format.";
 //                             }
 //                             break;
-                            
+
 //                         case "DELETE":
 //                             if (parts.Length == 2 && int.TryParse(parts[1], out int deleteItemId))
 //                             {
@@ -430,7 +430,7 @@
 //                     var (averageRating, overallSentiment, recommendation) = AnalyzeSentimentsAndRatings(feedbackEntries);
 
 //                     response.AppendLine($"Rating: {averageRating:F1}, Overall Sentiment: {overallSentiment}");
-        
+
 //                 }
 //             }
 //             else
@@ -855,7 +855,7 @@
 // {
 //     try
 //     {
-       
+
 //         // Fetch rollout items
 //         string rolloutQuery = "SELECT rollout_id, item_name, price, available FROM RolloutItems WHERE available = 1";
 //         MySqlCommand rolloutCmd = new MySqlCommand(rolloutQuery, connection);
@@ -972,17 +972,16 @@ namespace CafeteriaServer
     {
         static void Main(string[] args)
         {
-            // MySQL database connection settings
+       
             string connectionString = "Server=localhost;Database=CafeteriaDB;Uid=root;Pwd=Admin@123;";
             MySqlConnection connection = new MySqlConnection(connectionString);
 
             try
             {
-                // Open the database connection
+                
                 connection.Open();
                 Console.WriteLine("Connected to MySQL database.");
 
-                // Start server
                 TcpListener server = new TcpListener(IPAddress.Any, 13000);
                 server.Start();
                 Console.WriteLine("Server started. Listening for clients...");
@@ -1020,17 +1019,24 @@ namespace CafeteriaServer
                             response = MenuOperations.FetchMenuItemsWithFeedback(connection);
                             break;
                         case "FETCH_ROLLOUT_Feedback":
-                            response = RolloutOperations.GetRolloutItems(connection, "Feedback");
+                            response = RolloutOperations.FetchRolloutItemsWithFeedback(connection);
                             break;
                         case "ADD":
                             if (parts.Length >= 5)
                             {
-                                string menuType = parts[1]; // Breakfast, Lunch, Dinner
-                                string itemName = parts[2];
-                                if (decimal.TryParse(parts[3], out decimal price))
+                                string menuType = parts[1]; 
+                                string itemName = string.Join(" ", parts.Skip(2).Take(parts.Length - 4)).Trim('"').Trim();
+                                if (decimal.TryParse(parts[parts.Length - 2], out decimal price))
                                 {
-                                    int available = int.Parse(parts[4]);
-                                    response = MenuOperations.AddMenuItem(connection, menuType, itemName, price, available);
+                                    
+                                    if (int.TryParse(parts[parts.Length - 1], out int available) && (available == 0 || available == 1))
+                                    {
+                                        response = MenuOperations.AddMenuItem(connection, menuType, itemName, price, available);
+                                    }
+                                    else
+                                    {
+                                        response = "Invalid availability format.";
+                                    }
                                 }
                                 else
                                 {
@@ -1043,14 +1049,20 @@ namespace CafeteriaServer
                             }
                             break;
                         case "UPDATE":
-                            if (parts.Length >= 5)
+                            if (parts.Length >= 4)
                             {
-                                int itemId = int.Parse(parts[1]);
-                                string itemName = parts[2];
-                                if (decimal.TryParse(parts[3], out decimal price))
+                                string itemName = parts[1]; 
+                                if (decimal.TryParse(parts[2], out decimal price))
                                 {
-                                    int available = int.Parse(parts[4]);
-                                    response = MenuOperations.UpdateMenuItem(connection, itemId, itemName, price, available);
+                                    int available;
+                                    if (int.TryParse(parts[3], out available))
+                                    {
+                                        response = MenuOperations.UpdateMenuItem(connection, itemName, price, available);
+                                    }
+                                    else
+                                    {
+                                        response = "Invalid availability format.";
+                                    }
                                 }
                                 else
                                 {
@@ -1077,7 +1089,7 @@ namespace CafeteriaServer
                             {
                                 string[] itemIdsStr = new string[parts.Length - 1];
                                 Array.Copy(parts, 1, itemIdsStr, 0, parts.Length - 1);
-                                response = RolloutOperations.GetRolloutItems(connection, "NextDay");
+                                response = RolloutOperations.RolloutFoodItemsForNextDay(connection, itemIdsStr);
                             }
                             else
                             {
@@ -1088,16 +1100,15 @@ namespace CafeteriaServer
                             response = FeedbackOperations.FetchFeedbackItems(connection);
                             break;
                         case "FETCH_EMPLOYEE_SELECTIONS":
-                            response = EmployeeSelectionOperations.GetAvailableEmployees(connection);
+                            response = EmployeeSelectionOperations.FetchEmployeeSelections(connection);
                             break;
                         case "FETCH_ROLLOUT":
-                            response = RolloutOperations.GetRolloutItems(connection, "Feedback");
+                            response = RolloutOperations.FetchRolloutItemsWithFeedback(connection);
                             break;
                         case "SELECT_ITEM":
                             if (parts.Length == 2 && int.TryParse(parts[1], out int selectedRolloutId))
                             {
-                                // Implement the method to handle the selection of a food item for the next day
-                                response = $"Select item method not implemented. ItemId: {selectedRolloutId}";
+                                response = MenuOperations.SelectFoodItemForNextDay(connection, selectedRolloutId);
                             }
                             else
                             {
@@ -1108,7 +1119,7 @@ namespace CafeteriaServer
                             if (parts.Length >= 2)
                             {
                                 string foodItem = string.Join(" ", parts, 1, parts.Length - 1);
-                                response = $"Send feedback form method not implemented for item: {foodItem}";
+                                response = FeedbackOperations.SubmitFeedback(connection, foodItem);
                             }
                             else
                             {
@@ -1116,13 +1127,7 @@ namespace CafeteriaServer
                             }
                             break;
                         case "SUBMIT_FEEDBACK":
-                            // Combine the command arguments to handle quotes correctly
                             string commandArgs = string.Join(" ", parts.Skip(1));
-
-                            // Use regular expressions to match the quoted strings
-                            // Pattern breakdown:
-                            // \"(.*?)\" - Match quoted strings for itemName and comments
-                            // \\s(\\d) - Match the single digit for rating after a space
                             Regex feedbackRegex = new Regex("\"(.*?)\"\\s(\\d)\\s\"(.*?)\"");
 
                             Match match = feedbackRegex.Match(commandArgs);
@@ -1132,10 +1137,8 @@ namespace CafeteriaServer
                                 int rating = int.Parse(match.Groups[2].Value); // Group 2: rating
                                 string comments = match.Groups[3].Value; // Group 3: comments
 
-                                // Log for debugging
+                               
                                 Console.WriteLine($"Parsed Feedback - Item: {itemName}, Rating: {rating}, Comments: {comments}");
-
-                                // Call the method to handle feedback
                                 response = FeedbackOperations.FillFeedbackForm(connection, itemName, rating, comments);
                             }
                             else
@@ -1148,11 +1151,8 @@ namespace CafeteriaServer
                             break;
                     }
 
-                    // Send response back to client
                     SendResponseToClient(stream, response);
                     Console.WriteLine("Sent to client: {0}", response);
-
-                    // Clean up
                     stream.Close();
                     client.Close();
                 }
@@ -1163,7 +1163,7 @@ namespace CafeteriaServer
             }
             finally
             {
-                // Close database connection
+
                 if (connection != null && connection.State == System.Data.ConnectionState.Open)
                 {
                     connection.Close();

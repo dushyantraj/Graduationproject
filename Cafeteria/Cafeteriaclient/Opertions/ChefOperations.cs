@@ -8,7 +8,7 @@ namespace CafeteriaClient.Operations
     {
         public static void RolloutFoodItemForNextDay()
         {
-            MenuOperations.FetchMenuItems(); // Display current menu items
+            MenuOperations.FetchMenuItems();
 
             Console.WriteLine("Enter the Item IDs (separated by spaces) to roll out for the next day:");
             string itemIdsInput = Console.ReadLine();

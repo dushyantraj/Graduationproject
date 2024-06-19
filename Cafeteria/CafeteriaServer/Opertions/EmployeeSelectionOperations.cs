@@ -5,41 +5,33 @@ namespace CafeteriaServer.Operations
 {
     public static class EmployeeSelectionOperations
     {
-        public static string GetAvailableEmployees(MySqlConnection connection)
+        public static string FetchEmployeeSelections(MySqlConnection connection)
         {
             try
             {
                 StringBuilder sb = new StringBuilder();
-                string query = "SELECT Name FROM Employee WHERE Available = 1";
+                string query = "SELECT es.*, ri.item_name FROM EmployeeSelections es JOIN RolloutItems ri ON es.rollout_id = ri.rollout_id";
                 MySqlCommand cmd = new MySqlCommand(query, connection);
-
-                if (connection.State == System.Data.ConnectionState.Closed)
-                {
-                    connection.Open();
-                }
-
                 MySqlDataReader reader = cmd.ExecuteReader();
 
                 while (reader.Read())
                 {
-                    string name = reader["Name"].ToString();
-                    sb.AppendLine(name);
+                    int userId = reader.GetInt32("user_id");
+                    int rolloutId = reader.GetInt32("rollout_id");
+                    string itemName = reader.GetString("item_name");
+
+                    sb.AppendLine($"Employee ID: {userId}, Rollout ID: {rolloutId}, Item Name: {itemName}");
                 }
 
                 reader.Close();
+
                 return sb.ToString();
             }
             catch (Exception ex)
             {
-                return $"Error fetching available employees: {ex.Message}";
-            }
-            finally
-            {
-                if (connection.State == System.Data.ConnectionState.Open)
-                {
-                    connection.Close();
-                }
+                return "Error fetching employee selections: " + ex.Message;
             }
         }
+
     }
 }

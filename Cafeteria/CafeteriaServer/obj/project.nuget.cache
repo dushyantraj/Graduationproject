@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "hBe6UgGD2Nc=",
+  "dgSpecHash": "ra4nkp3g/N8=",
   "success": true,
-  "projectFilePath": "/home/dushyantrajsharma/Graduationproject/Cafeteria/CafeteriaServer/MenuServer.csproj",
+  "projectFilePath": "/home/dushyantrajsharma/Graduationproject/Cafeteria/CafeteriaServer/CafeterialServer.csproj",
   "expectedPackageFiles": [
     "/home/dushyantrajsharma/.nuget/packages/bouncycastle.cryptography/2.2.1/bouncycastle.cryptography.2.2.1.nupkg.sha512",
     "/home/dushyantrajsharma/.nuget/packages/google.protobuf/3.25.1/google.protobuf.3.25.1.nupkg.sha512",

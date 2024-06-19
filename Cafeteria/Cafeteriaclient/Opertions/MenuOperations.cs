@@ -37,20 +37,9 @@ namespace CafeteriaClient.Operations
             string response = ServerCommunicator.SendCommandToServer(request);
             Console.WriteLine("Received from server: {0}", response);
         }
-
         public static void UpdateMenuItem()
         {
-            Console.Write("Enter the item ID to update: ");
-            int itemId;
-            while (!int.TryParse(Console.ReadLine().Trim(), out itemId))
-            {
-                Console.Write("Invalid item ID. Enter the item ID again: ");
-            }
-
-            Console.Write("Enter the new menu type (Breakfast, Lunch, Dinner): ");
-            string menuType = Console.ReadLine().Trim();
-
-            Console.Write("Enter the new food item name: ");
+            Console.Write("Enter the food item name to update: ");
             string itemName = Console.ReadLine().Trim();
 
             Console.Write("Enter the new price: ");
@@ -67,10 +56,11 @@ namespace CafeteriaClient.Operations
                 Console.Write("Invalid availability. Enter 1 for available or 0 for not available: ");
             }
 
-            string request = $"UPDATE {itemId} {menuType} {itemName} {price} {available}";
+            string request = $"UPDATE {itemName} {price} {available}";
             string response = ServerCommunicator.SendCommandToServer(request);
             Console.WriteLine("Received from server: {0}", response);
         }
+
 
         public static void DeleteMenuItem()
         {

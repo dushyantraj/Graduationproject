@@ -10,7 +10,5 @@ namespace CafeteriaClient.Utilities
             Program.currentUsername = null;
             Program.currentRole = null;
         }
-
-        // Additional utility methods can be added here as needed
     }
 }
