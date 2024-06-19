@@ -1,6 +1,6 @@
 using System;
 
-namespace MenuClient.Utilities
+namespace CafeteriaClient.Utilities
 {
     class Utils
     {

@@ -1,7 +1,7 @@
 using System;
-using MenuClient.Operations;
+using CafeteriaClient.Operations;
 
-namespace MenuClient.Menus
+namespace CafeteriaClient.Menus
 {
     class ChefMenu
     {

@@ -1,4 +1,4 @@
-namespace MenuClient.Models
+namespace CafeteriaClient.Models
 {
     public class MenuItem
     {

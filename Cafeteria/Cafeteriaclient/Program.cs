@@ -1,10 +1,10 @@
 using System;
-using MenuClient.Communication;
-using MenuClient.Authentications;
-using MenuClient.Menus;
-using MenuClient.Utilities;
+using CafeteriaClient.Communication;
+using CafeteriaClient.Authentications;
+using CafeteriaClient.Menus;
+using CafeteriaClient.Utilities;
 
-namespace MenuClient
+namespace CafeteriaClient
 {
     class Program
     {

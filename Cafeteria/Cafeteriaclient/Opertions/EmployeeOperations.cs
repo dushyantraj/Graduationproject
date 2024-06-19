@@ -1,7 +1,7 @@
 using System;
-using MenuClient.Communication;
+using CafeteriaClient.Communication;
 
-namespace MenuClient.Operations
+namespace CafeteriaClient.Operations
 {
     class EmployeeOperations
     {
