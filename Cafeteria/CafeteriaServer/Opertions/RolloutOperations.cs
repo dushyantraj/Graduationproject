@@ -98,7 +98,6 @@ namespace CafeteriaServer.Operations
         {
             try
             {
-                FetchMenuItemsWithFeedback(connection);
                 int successfulCount = 0;
                 DateTime today = DateTime.Today;
 
@@ -173,14 +172,12 @@ namespace CafeteriaServer.Operations
                 return "Error rolling out item: " + ex.Message;
             }
         }
-        public static string FetchMenuItemsWithFeedback(MySqlConnection connection)
+ 
+ public static string FetchMenu(MySqlConnection connection)
         {
             try
             {
-                if (connection.State == ConnectionState.Closed)
-                {
-                    connection.Open();
-                }
+                
                 string menuQuery = "SELECT item_id, name, price, available FROM MenuItem";
                 MySqlCommand menuCmd = new MySqlCommand(menuQuery, connection);
 
@@ -259,13 +256,10 @@ namespace CafeteriaServer.Operations
             }
             finally
             {
-                if (connection.State == ConnectionState.Open)
-                {
-                    connection.Close();
-                }
+                Console.WriteLine("Closing connection...");
             }
         }
-        private static (double AverageRating, string OverallSentiment, string Recommendation) AnalyzeSentimentsAndRatings(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
+        public static (double AverageRating, string OverallSentiment, string Recommendation) AnalyzeSentimentsAndRatings(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
         {
             var overallMetrics = CalculateOverallSentimentsAndRatings(entries);
             return overallMetrics;

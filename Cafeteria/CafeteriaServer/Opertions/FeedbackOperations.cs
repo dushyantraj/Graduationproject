@@ -7,55 +7,159 @@ namespace CafeteriaServer.Operations
 {
     public static class FeedbackOperations
     {
-        public static string FillFeedbackForm(MySqlConnection connection, string itemName, int rating, string comments)
+        // public static string FillFeedbackForm(MySqlConnection connection, string itemName, int rating, string comments)
+        // {
+        //     try
+        //     {
+        //         FetchFeedbackItems(connection);
+
+        //         string selectQuery = "SELECT feedback_id FROM Feedback WHERE item_name = @itemName";
+        //         MySqlCommand selectCmd = new MySqlCommand(selectQuery, connection);
+        //         selectCmd.Parameters.AddWithValue("@itemName", itemName);
+
+        //         if (connection.State == System.Data.ConnectionState.Closed)
+        //         {
+        //             connection.Open();
+        //         }
+
+        //         object feedbackIdObj = selectCmd.ExecuteScalar();
+
+        //         if (feedbackIdObj != null)
+        //         {
+        //             int feedbackId = Convert.ToInt32(feedbackIdObj);
+
+        //             string insertQuery = "INSERT INTO FeedbackDetails (feedback_id, rating, comments) VALUES (@feedbackId, @rating, @comments)";
+        //             MySqlCommand insertCmd = new MySqlCommand(insertQuery, connection);
+        //             insertCmd.Parameters.AddWithValue("@feedbackId", feedbackId);
+        //             insertCmd.Parameters.AddWithValue("@rating", rating);
+        //             insertCmd.Parameters.AddWithValue("@comments", comments);
+
+        //             int rowsAffected = insertCmd.ExecuteNonQuery();
+
+        //             return rowsAffected > 0 ? "Feedback submitted successfully." : "Failed to submit feedback.";
+        //         }
+        //         else
+        //         {
+        //             return "Item not found. Please provide valid food item name.";
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return $"Error filling feedback form: {ex.Message}";
+        //     }
+        //     finally
+        //     {
+        //         if (connection.State == System.Data.ConnectionState.Open)
+        //         {
+        //             connection.Close();
+        //         }
+        //     }
+        // }
+     public static string FillFeedbackForm(MySqlConnection connection, string itemName, int rating, string comments)
+{
+    try
+    {
+        FetchFeedbackItems(connection);
+
+        string selectQuery = "SELECT feedback_id FROM Feedback WHERE item_name = @itemName";
+        MySqlCommand selectCmd = new MySqlCommand(selectQuery, connection);
+        selectCmd.Parameters.AddWithValue("@itemName", itemName);
+
+        if (connection.State == System.Data.ConnectionState.Closed)
         {
-            try
+            connection.Open();
+        }
+
+        object feedbackIdObj = selectCmd.ExecuteScalar();
+
+        if (feedbackIdObj != null)
+        {
+            int feedbackId = Convert.ToInt32(feedbackIdObj);
+
+            string insertQuery = "INSERT INTO FeedbackDetails (feedback_id, rating, comments) VALUES (@feedbackId, @rating, @comments)";
+            MySqlCommand insertCmd = new MySqlCommand(insertQuery, connection);
+            insertCmd.Parameters.AddWithValue("@feedbackId", feedbackId);
+            insertCmd.Parameters.AddWithValue("@rating", rating);
+            insertCmd.Parameters.AddWithValue("@comments", comments);
+
+            int rowsAffected = insertCmd.ExecuteNonQuery();
+
+            if (rowsAffected > 0)
             {
-                FetchFeedbackItems(connection);
-
-                string selectQuery = "SELECT feedback_id FROM Feedback WHERE item_name = @itemName";
-                MySqlCommand selectCmd = new MySqlCommand(selectQuery, connection);
-                selectCmd.Parameters.AddWithValue("@itemName", itemName);
-
-                if (connection.State == System.Data.ConnectionState.Closed)
-                {
-                    connection.Open();
-                }
-
-                object feedbackIdObj = selectCmd.ExecuteScalar();
-
-                if (feedbackIdObj != null)
-                {
-                    int feedbackId = Convert.ToInt32(feedbackIdObj);
-
-                    string insertQuery = "INSERT INTO FeedbackDetails (feedback_id, rating, comments) VALUES (@feedbackId, @rating, @comments)";
-                    MySqlCommand insertCmd = new MySqlCommand(insertQuery, connection);
-                    insertCmd.Parameters.AddWithValue("@feedbackId", feedbackId);
-                    insertCmd.Parameters.AddWithValue("@rating", rating);
-                    insertCmd.Parameters.AddWithValue("@comments", comments);
-
-                    int rowsAffected = insertCmd.ExecuteNonQuery();
-
-                    return rowsAffected > 0 ? "Feedback submitted successfully." : "Failed to submit feedback.";
-                }
-                else
-                {
-                    return "Item not found. Please provide valid food item name.";
-                }
+                // After inserting feedback, update overall_sentiment for the item
+                UpdateOverallSentiment(connection, itemName);
+                return "Feedback submitted successfully.";
             }
-            catch (Exception ex)
+            else
             {
-                return $"Error filling feedback form: {ex.Message}";
-            }
-            finally
-            {
-                if (connection.State == System.Data.ConnectionState.Open)
-                {
-                    connection.Close();
-                }
+                return "Failed to submit feedback.";
             }
         }
-        public static string SubmitFeedback(MySqlConnection connection, string itemName)
+        else
+        {
+            return "Item not found. Please provide valid food item name.";
+        }
+    }
+    catch (Exception ex)
+    {
+        return $"Error filling feedback form: {ex.Message}";
+    }
+    finally
+    {
+        if (connection.State == System.Data.ConnectionState.Open)
+        {
+            connection.Close();
+        }
+    }
+}
+
+private static List<(double Rating, string Comment, DateTime CreatedAt)> ConvertToEntries(List<string> comments)
+{
+    var entries = new List<(double Rating, string Comment, DateTime CreatedAt)>();
+
+    // For simplicity, assume default values for rating and created_at
+    foreach (var comment in comments)
+    {
+        entries.Add((3.0, comment, DateTime.Now)); // Replace with actual rating and created_at if available
+    }
+
+    return entries;
+}
+
+
+private static void UpdateOverallSentiment(MySqlConnection connection, string itemName)
+{
+    string selectCommentsQuery = "SELECT comments FROM FeedbackDetails WHERE feedback_id IN " +
+                                 "(SELECT feedback_id FROM Feedback WHERE item_name = @itemName)";
+    MySqlCommand selectCommentsCmd = new MySqlCommand(selectCommentsQuery, connection);
+    selectCommentsCmd.Parameters.AddWithValue("@itemName", itemName);
+
+    List<string> comments = new List<string>();
+
+    using (MySqlDataReader reader = selectCommentsCmd.ExecuteReader())
+    {
+        while (reader.Read())
+        {
+            comments.Add(reader.GetString("comments"));
+        }
+    }
+
+    // Convert comments to entries
+    var entries = ConvertToEntries(comments);
+
+    // Perform sentiment analysis
+    var overallMetrics = RolloutOperations.AnalyzeSentimentsAndRatings(entries);
+
+    // Update overall sentiment in Feedback table
+    string updateQuery = "UPDATE Feedback SET overall_sentiment = @overallSentiment " +
+                         "WHERE item_name = @itemName";
+    MySqlCommand updateCmd = new MySqlCommand(updateQuery, connection);
+    updateCmd.Parameters.AddWithValue("@overallSentiment", overallMetrics.OverallSentiment);
+    updateCmd.Parameters.AddWithValue("@itemName", itemName);
+
+    updateCmd.ExecuteNonQuery();
+}
+ public static string SubmitFeedback(MySqlConnection connection, string itemName)
         {
             try
             {
@@ -79,8 +183,6 @@ namespace CafeteriaServer.Operations
                 return "Error submitting feedback: " + ex.Message;
             }
         }
-
-
         public static string FetchFeedbackItems(MySqlConnection connection)
         {
             try

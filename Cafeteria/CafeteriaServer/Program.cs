@@ -1015,8 +1015,11 @@ namespace CafeteriaServer
                                 response = "Invalid login command format.";
                             }
                             break;
-                        case "FETCH":
+                         case "FETCH_WITH_RECOMMENDATION":
                             response = MenuOperations.FetchMenuItemsWithFeedback(connection);
+                            break;
+                        case "MENU_FETCH":
+                            response = RolloutOperations.FetchMenu(connection);
                             break;
                         case "FETCH_ROLLOUT_Feedback":
                             response = RolloutOperations.FetchRolloutItemsWithFeedback(connection);

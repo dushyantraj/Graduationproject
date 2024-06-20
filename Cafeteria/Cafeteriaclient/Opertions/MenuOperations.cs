@@ -7,10 +7,15 @@ namespace CafeteriaClient.Operations
     {
         public static void FetchMenuItems()
         {
-            string response = ServerCommunicator.SendCommandToServer("FETCH");
+            string response = ServerCommunicator.SendCommandToServer("MENU_FETCH");
             Console.WriteLine("Received from server:\n{0}", response);
         }
-
+        public static void FetchMenuItemsWithRecommendation()
+        {
+            string response = ServerCommunicator.SendCommandToServer("FETCH_WITH_RECOMMENDATION");
+            Console.WriteLine("Received from server:\n{0}", response);
+        }
+       
         public static void AddMenuItem()
         {
             Console.Write("Enter the menu type (Breakfast, Lunch, Dinner): ");

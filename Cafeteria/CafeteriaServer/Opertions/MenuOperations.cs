@@ -176,99 +176,111 @@ namespace CafeteriaServer.Operations
     public static class MenuOperations
     {
 
-        public static string FetchMenuItemsWithFeedback(MySqlConnection connection)
+   public static string FetchMenuItemsWithFeedback(MySqlConnection connection)
+{
+    try
+    {
+        if (connection.State == ConnectionState.Closed)
         {
-            try
+            connection.Open();
+        }
+        
+        
+        string menuQuery = "SELECT item_id, name, price, available FROM MenuItem";
+        MySqlCommand menuCmd = new MySqlCommand(menuQuery, connection);
+
+        var menuItems = new Dictionary<int, (string Name, decimal Price, int Available)>();
+
+        using (var reader = menuCmd.ExecuteReader())
+        {
+            while (reader.Read())
             {
+                int itemId = reader.GetInt32("item_id");
+                string name = reader.GetString("name");
+                decimal price = reader.GetDecimal("price");
+                int available = reader.GetInt32("available");
 
-                if (connection.State == ConnectionState.Closed)
-                {
-                    connection.Open();
-                }
-
-                string menuQuery = "SELECT item_id, name, price, available FROM MenuItem";
-                MySqlCommand menuCmd = new MySqlCommand(menuQuery, connection);
-
-                var menuItems = new Dictionary<int, (string Name, decimal Price, int Available)>();
-
-                using (var reader = menuCmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        int itemId = reader.GetInt32("item_id");
-                        string name = reader.GetString("name");
-                        decimal price = reader.GetDecimal("price");
-                        int available = reader.GetInt32("available");
-
-                        menuItems[itemId] = (name, price, available);
-                    }
-                }
-
-                string feedbackQuery = "SELECT f.item_name, fd.rating, fd.comments, fd.created_at FROM Feedback f " +
-                                       "JOIN FeedbackDetails fd ON f.feedback_id = fd.feedback_id";
-                MySqlCommand feedbackCmd = new MySqlCommand(feedbackQuery, connection);
-
-                var feedbackDict = new Dictionary<string, List<(double Rating, string Comment, DateTime CreatedAt)>>();
-
-                using (var reader = feedbackCmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        string itemName = reader.GetString("item_name").Trim();
-                        double rating = reader.GetDouble("rating");
-                        string comment = reader.GetString("comments");
-                        DateTime createdAt = reader.GetDateTime("created_at");
-
-                        if (!feedbackDict.ContainsKey(itemName))
-                        {
-                            feedbackDict[itemName] = new List<(double Rating, string Comment, DateTime CreatedAt)>();
-                        }
-
-                        feedbackDict[itemName].Add((rating, comment, createdAt));
-                    }
-                }
-
-                StringBuilder response = new StringBuilder();
-
-
-                foreach (var item in menuItems)
-                {
-                    int itemId = item.Key;
-                    string itemName = item.Value.Name;
-                    decimal price = item.Value.Price;
-                    int available = item.Value.Available;
-
-                    response.AppendLine($"Item ID: {itemId}, Name: {itemName}, Price: {price:F2}, Available: {available}");
-
-                    if (feedbackDict.ContainsKey(itemName))
-                    {
-                        var feedbackEntries = feedbackDict[itemName];
-                        if (feedbackEntries.Count > 0)
-                        {
-                            var (averageRating, overallSentiment, recommendation) = Utilities.AnalyzeSentimentsAndRatings(feedbackEntries);
-                            response.AppendLine($" Rating: {averageRating:F1}, Overall Sentiment: {overallSentiment}, Recommendation: {recommendation}");
-                        }
-                    }
-                    // else
-                    // {
-                    //     response.AppendLine($"  Average Rating: N/A, Overall Sentiment: N/A");
-                    // }
-                }
-
-                return response.ToString();
+                menuItems[itemId] = (name, price, available);
             }
-            catch (Exception ex)
+        }
+        
+        
+        string feedbackQuery = "SELECT f.item_name, fd.rating, fd.comments, fd.created_at FROM Feedback f " +
+                               "JOIN FeedbackDetails fd ON f.feedback_id = fd.feedback_id";
+        MySqlCommand feedbackCmd = new MySqlCommand(feedbackQuery, connection);
+
+        var feedbackDict = new Dictionary<string, List<(double Rating, string Comment, DateTime CreatedAt)>>();
+
+        using (var reader = feedbackCmd.ExecuteReader())
+        {
+            while (reader.Read())
             {
-                return $"Error fetching menu items: {ex.Message}";
-            }
-            finally
-            {
-                if (connection.State == ConnectionState.Open)
+                string itemName = reader.GetString("item_name").Trim();
+                double rating = reader.GetDouble("rating");
+                string comment = reader.GetString("comments");
+                DateTime createdAt = reader.GetDateTime("created_at");
+
+                if (!feedbackDict.ContainsKey(itemName))
                 {
-                    connection.Close();
+                    feedbackDict[itemName] = new List<(double Rating, string Comment, DateTime CreatedAt)>();
+                }
+
+                feedbackDict[itemName].Add((rating, comment, createdAt));
+            }
+        }
+
+        var recommendedItems = new List<(int ItemId, string Name, decimal Price, int Available, double AverageRating, string OverallSentiment, string Recommendation)>();
+
+        foreach (var item in menuItems)
+        {
+            int itemId = item.Key;
+            string itemName = item.Value.Name;
+            decimal price = item.Value.Price;
+            int available = item.Value.Available;
+
+            if (feedbackDict.ContainsKey(itemName))
+            {
+                var feedbackEntries = feedbackDict[itemName];
+
+                if (feedbackEntries.Count > 0)
+                {
+                    var (averageRating, overallSentiment, recommendation) = RolloutOperations.AnalyzeSentimentsAndRatings(feedbackEntries);
+
+                    if (overallSentiment == "Positive")
+                    {
+                        recommendedItems.Add((itemId, itemName, price, available, averageRating, overallSentiment, recommendation));
+                    }
                 }
             }
         }
+
+        
+        recommendedItems = recommendedItems.OrderByDescending(i => i.AverageRating).ToList();
+
+    
+        StringBuilder response = new StringBuilder();
+        response.AppendLine("Recommended Items with Positive Sentiment:");
+
+        foreach (var item in recommendedItems)
+        {
+            response.AppendLine($"Item ID: {item.ItemId}, Name: {item.Name}, Price: {item.Price:F2}, Available: {item.Available}");
+            response.AppendLine($"  Average Rating: {item.AverageRating:F1}, Overall Sentiment: {item.OverallSentiment}, Recommendation: {item.Recommendation}");
+        }
+
+        return response.ToString();
+    }
+    catch (Exception ex)
+    {
+        return $"Error fetching menu items: {ex.Message}";
+    }
+    finally
+    {
+        if (connection.State == ConnectionState.Open)
+        {
+            connection.Close();
+        }
+    }
+}
 
         public static string AddMenuItem(MySqlConnection connection, string menuType, string itemName, decimal price, int available)
         {
