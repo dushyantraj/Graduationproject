@@ -13,7 +13,7 @@ namespace CafeteriaClient.Menus
                 Console.WriteLine("1. Fetch Menu Items");
                 Console.WriteLine("2. Rollout Food Item for Next Day");
                 Console.WriteLine("3. View Employee Selections for Next Day");
-                Console.WriteLine("4. Provide Feedback on Rollout");
+                Console.WriteLine("4. Monthly Report");
                 Console.WriteLine("5. Send Feedback Form to Employees");
                 Console.WriteLine("6. Logout");
 

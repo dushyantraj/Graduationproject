@@ -246,13 +246,13 @@ namespace CafeteriaServer.Operations
                         if (feedbackEntries.Count > 0)
                         {
                             var (averageRating, overallSentiment, recommendation) = Utilities.AnalyzeSentimentsAndRatings(feedbackEntries);
-                            response.AppendLine($"  Average Rating: {averageRating:F1}, Overall Sentiment: {overallSentiment}, Recommendation: {recommendation}");
+                            response.AppendLine($" Rating: {averageRating:F1}, Overall Sentiment: {overallSentiment}, Recommendation: {recommendation}");
                         }
                     }
-                    else
-                    {
-                        response.AppendLine($"  Average Rating: N/A, Overall Sentiment: N/A");
-                    }
+                    // else
+                    // {
+                    //     response.AppendLine($"  Average Rating: N/A, Overall Sentiment: N/A");
+                    // }
                 }
 
                 return response.ToString();

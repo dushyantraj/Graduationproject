@@ -965,20 +965,20 @@ using MySql.Data.MySqlClient;
 using CafeteriaServer.Models;
 using CafeteriaServer.Operations;
 using System.Collections.Generic;
-
+using CafeteriaServer.Recommendation;
 namespace CafeteriaServer
 {
     class Program
     {
         static void Main(string[] args)
         {
-       
+
             string connectionString = "Server=localhost;Database=CafeteriaDB;Uid=root;Pwd=Admin@123;";
             MySqlConnection connection = new MySqlConnection(connectionString);
 
             try
             {
-                
+
                 connection.Open();
                 Console.WriteLine("Connected to MySQL database.");
 
@@ -1024,11 +1024,11 @@ namespace CafeteriaServer
                         case "ADD":
                             if (parts.Length >= 5)
                             {
-                                string menuType = parts[1]; 
+                                string menuType = parts[1];
                                 string itemName = string.Join(" ", parts.Skip(2).Take(parts.Length - 4)).Trim('"').Trim();
                                 if (decimal.TryParse(parts[parts.Length - 2], out decimal price))
                                 {
-                                    
+
                                     if (int.TryParse(parts[parts.Length - 1], out int available) && (available == 0 || available == 1))
                                     {
                                         response = MenuOperations.AddMenuItem(connection, menuType, itemName, price, available);
@@ -1051,7 +1051,7 @@ namespace CafeteriaServer
                         case "UPDATE":
                             if (parts.Length >= 4)
                             {
-                                string itemName = parts[1]; 
+                                string itemName = parts[1];
                                 if (decimal.TryParse(parts[2], out decimal price))
                                 {
                                     int available;
@@ -1137,7 +1137,7 @@ namespace CafeteriaServer
                                 int rating = int.Parse(match.Groups[2].Value); // Group 2: rating
                                 string comments = match.Groups[3].Value; // Group 3: comments
 
-                               
+
                                 Console.WriteLine($"Parsed Feedback - Item: {itemName}, Rating: {rating}, Comments: {comments}");
                                 response = FeedbackOperations.FillFeedbackForm(connection, itemName, rating, comments);
                             }
@@ -1146,6 +1146,18 @@ namespace CafeteriaServer
                                 response = "Invalid feedback format. Please provide a valid format.";
                             }
                             break;
+                        case "LOGOUT":
+                            if (parts.Length >= 2)
+                            {
+                                string username = parts[1];
+                                response = LoginOperations.LogoutUser(connection, username);
+                            }
+                            else
+                            {
+                                response = "Invalid logout command format.";
+                            }
+                            break;
+
                         default:
                             response = "Invalid command.";
                             break;

@@ -1,6 +1,6 @@
 using System;
 using CafeteriaClient.Operations;
-
+using CafeteriaClient.Utilities;
 namespace CafeteriaClient.Menus
 {
     class EmployeeMenu
@@ -26,7 +26,7 @@ namespace CafeteriaClient.Menus
                         EmployeeOperations.FillFeedbackForm();
                         break;
                     case "3":
-                        Program.Logout();
+                        Utils.Logout();
                         return;
                     default:
                         Console.WriteLine("Invalid choice. Try again.");

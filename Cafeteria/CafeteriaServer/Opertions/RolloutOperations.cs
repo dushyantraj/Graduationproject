@@ -4,6 +4,8 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Data;
+using CafeteriaServer.Recommendation;
+
 namespace CafeteriaServer.Operations
 {
     public static class RolloutOperations
@@ -73,12 +75,12 @@ namespace CafeteriaServer.Operations
                     if (feedbackDict.ContainsKey(itemName))
                     {
                         var (averageRating, overallSentiment) = feedbackDict[itemName];
-                        response.AppendLine($"  Average Rating: {averageRating:F1}, Overall Sentiment: {overallSentiment}");
+                        response.AppendLine($" Rating: {averageRating:F1}, Overall Sentiment: {overallSentiment}");
                     }
-                    else
-                    {
-                        response.AppendLine($"  Average Rating: N/A, Overall Sentiment: N/A");
-                    }
+                    // else
+                    // {
+                    //     response.AppendLine($"  Average Rating: N/A, Overall Sentiment: N/A");
+                    // }
                 }
 
                 return response.ToString();
@@ -243,10 +245,10 @@ namespace CafeteriaServer.Operations
 
                         }
                     }
-                    else
-                    {
-                        response.AppendLine($"  Average Rating: N/A, Overall Sentiment: N/A");
-                    }
+                    // else
+                    // {
+                    //     response.AppendLine($"  Average Rating: N/A, Overall Sentiment: N/A");
+                    // }
                 }
 
                 return response.ToString();
@@ -268,38 +270,8 @@ namespace CafeteriaServer.Operations
             var overallMetrics = CalculateOverallSentimentsAndRatings(entries);
             return overallMetrics;
         }
-
         public static (double AverageRating, string OverallSentiment, string Recommendation) CalculateOverallSentimentsAndRatings(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
         {
-            Dictionary<string, List<string>> sentimentFeatures = new Dictionary<string, List<string>>
-    {
-        { "Positive", new List<string>
-            {
-                "delicious", "amazing", "great", "fantastic", "excellent", "good", "tasty", "wonderful", "superb", "awesome",
-                "very good", "incredible", "perfect", "outstanding", "impressive", "marvelous", "fabulous", "satisfying",
-                "brilliant", "splendid", "love", "enjoy", "nice", "pleased", "delightful", "high quality", "top-notch",
-                "best", "phenomenal", "pleasurable", "positive", "exceptional", "beautiful", "liked", "sweet", "happy",
-                "worthwhile", "superior", "magnificent", "charming", "stellar", "enchanting", "valuable"
-            }
-        },
-        { "Negative", new List<string>
-            {
-                "bad", "terrible", "disappointing", "awful", "poor", "tasteless", "horrible", "gross", "unpleasant",
-                "mediocre", "not good", "bad taste", "subpar", "poor quality", "lacking", "dissatisfying", "unacceptable",
-                "worst", "nasty", "disgusting", "dislike", "regret", "pathetic", "offensive", "inferior", "waste",
-                "problematic", "boring", "terrifying", "ugly", "dreadful", "insufficient", "crummy", "shoddy", "deficient",
-                "atrocious", "vile", "hate", "horrendous", "miserable", "lousy", "inferior", "frustrating", "displeased",
-                "sickening", "repulsive", "rotten", "gruesome", "disturbing", "shameful"
-            }
-        },
-        { "Negation", new List<string>
-            {
-                "not", "no", "never", "none", "neither", "without", "barely", "hardly", "scarcely", "rarely",
-                "little", "few", "nothing", "nobody"
-            }
-        }
-    };
-
             int positiveCount = 0;
             int negativeCount = 0;
             int neutralCount = 0;
@@ -311,28 +283,32 @@ namespace CafeteriaServer.Operations
                 string comment = entry.Comment.ToLower();
                 int sentimentScore = 0;
                 bool isNegated = false;
+
+
                 string[] words = comment.Split(new char[] { ' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
 
                 for (int i = 0; i < words.Length; i++)
                 {
                     string word = words[i];
 
-                    if (sentimentFeatures["Negation"].Contains(word))
+                    if (SentimentWords.NegationWords.Contains(word))
                     {
                         isNegated = true;
                         continue;
                     }
 
-                    foreach (var kvp in sentimentFeatures)
+                    if (SentimentWords.PositiveWords.Contains(word))
                     {
-                        if (kvp.Value.Contains(word))
-                        {
-                            int score = kvp.Key == "Positive" ? 1 : -1;
-                            sentimentScore += isNegated ? -score : score;
-                            isNegated = false;
-                        }
+                        sentimentScore += isNegated ? -1 : 1;
+                        isNegated = false;
+                    }
+                    else if (SentimentWords.NegativeWords.Contains(word))
+                    {
+                        sentimentScore += isNegated ? 1 : -1;
+                        isNegated = false;
                     }
                 }
+
                 if (sentimentScore > 0)
                 {
                     positiveCount++;
@@ -351,15 +327,7 @@ namespace CafeteriaServer.Operations
 
             double averageRating = entries.Count > 0 ? totalRating / entries.Count : 0.0;
 
-            string overallSentiment = "Neutral";
-            if (positiveCount > negativeCount)
-            {
-                overallSentiment = "Positive";
-            }
-            else if (negativeCount > positiveCount)
-            {
-                overallSentiment = "Negative";
-            }
+            string overallSentiment = DetermineOverallSentiment(positiveCount, negativeCount, neutralCount);
 
             string recommendation = averageRating >= 4.0 ? "Highly recommended" :
                                     averageRating >= 3.0 ? "Recommended" :
@@ -369,6 +337,21 @@ namespace CafeteriaServer.Operations
             return (averageRating, overallSentiment, recommendation);
         }
 
+        private static string DetermineOverallSentiment(int positiveCount, int negativeCount, int neutralCount)
+        {
+            if (positiveCount > negativeCount)
+            {
+                return "Positive";
+            }
+            else if (negativeCount > positiveCount)
+            {
+                return "Negative";
+            }
+            else
+            {
+                return "Neutral";
+            }
+        }
         public static string CalculateOverallSentiment(int positiveCount, int negativeCount, int totalFeedback)
         {
             if (totalFeedback == 0) return "N/A";
