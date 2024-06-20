@@ -1092,7 +1092,7 @@ namespace CafeteriaServer
                             {
                                 string[] itemIdsStr = new string[parts.Length - 1];
                                 Array.Copy(parts, 1, itemIdsStr, 0, parts.Length - 1);
-                                response = RolloutOperations.RolloutFoodItemsForNextDay(connection, itemIdsStr);
+                                response = ChefOperation.RolloutFoodItemsForNextDay(connection, itemIdsStr);
                             }
                             else
                             {
@@ -1160,7 +1160,12 @@ namespace CafeteriaServer
                                 response = "Invalid logout command format.";
                             }
                             break;
-
+                            case "FETCH_NOTIFICATION_FOR_EMPLOYEE":
+                            response = EmployeeSelectionOperations.GetEmployeeNotification((int)RoleEnum.Employee, connection);
+                            break;
+                             case "FETCH_NOTIFICATION_FOR_CHEF":
+                            response = ChefOperation.GetChefNotification((int)RoleEnum.Chef, connection);
+                            break;
                         default:
                             response = "Invalid command.";
                             break;

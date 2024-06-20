@@ -12,7 +12,7 @@ namespace CafeteriaClient.Menus
                 Console.WriteLine("Employee Menu:");
                 Console.WriteLine("1. Select Food Item for Next Day");
                 Console.WriteLine("2. Fill the Feedback Form");
-                Console.WriteLine("3. Logout");
+                Console.WriteLine("3. View Notification");
 
                 Console.Write("Enter your choice: ");
                 string choice = Console.ReadLine();
@@ -25,7 +25,10 @@ namespace CafeteriaClient.Menus
                     case "2":
                         EmployeeOperations.FillFeedbackForm();
                         break;
-                    case "3":
+                        case "3":
+                        EmployeeOperations.FetchNotificaionForEmployee();
+                        break;
+                    case "4":
                         Utils.Logout();
                         return;
                     default:

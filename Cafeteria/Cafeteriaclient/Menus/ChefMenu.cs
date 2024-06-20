@@ -13,7 +13,7 @@ namespace CafeteriaClient.Menus
                 Console.WriteLine("1. Fetch Menu Items");
                 Console.WriteLine("2. Rollout Food Item for Next Day");
                 Console.WriteLine("3. View Employee Selections for Next Day");
-                Console.WriteLine("4. Monthly Report");
+                Console.WriteLine("4. View Notifications");
                 Console.WriteLine("5. Send Feedback Form to Employees");
                 Console.WriteLine("6. Logout");
 
@@ -32,7 +32,7 @@ namespace CafeteriaClient.Menus
                         ChefOperations.ViewEmployeeSelections();
                         break;
                     case "4":
-                        ChefOperations.ProvideFeedbackOnRollout();
+                        ChefOperations.FetchNotificaionForChef();
                         break;
                     case "5":
                         ChefOperations.SendFeedbackForm();

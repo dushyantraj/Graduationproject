@@ -5,6 +5,12 @@ namespace CafeteriaClient.Operations
 {
     class EmployeeOperations
     {
+         public static void FetchNotificaionForEmployee()
+        {
+            string response = ServerCommunicator.SendCommandToServer("FETCH_NOTIFICATION_FOR_EMPLOYEE");
+            Console.WriteLine("Received from server:\n{0}", response);
+        }
+       
         public static void SelectFoodItemForNextDay()
         {
             string response = ServerCommunicator.SendCommandToServer("FETCH_ROLLOUT");

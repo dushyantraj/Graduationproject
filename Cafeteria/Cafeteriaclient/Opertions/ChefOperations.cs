@@ -6,6 +6,13 @@ namespace CafeteriaClient.Operations
 {
     class ChefOperations
     {
+
+          public static void FetchNotificaionForChef()
+        {
+            string response = ServerCommunicator.SendCommandToServer("FETCH_NOTIFICATION_FOR_CHEF");
+            Console.WriteLine("Received from server:\n{0}", response);
+        }
+       
         public static void RolloutFoodItemForNextDay()
         {
 

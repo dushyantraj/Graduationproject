@@ -2,59 +2,12 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Text;
 using System.Collections.Generic;
-
+using CafeteriaServer.Recommendation;
 namespace CafeteriaServer.Operations
 {
     public static class FeedbackOperations
     {
-        // public static string FillFeedbackForm(MySqlConnection connection, string itemName, int rating, string comments)
-        // {
-        //     try
-        //     {
-        //         FetchFeedbackItems(connection);
-
-        //         string selectQuery = "SELECT feedback_id FROM Feedback WHERE item_name = @itemName";
-        //         MySqlCommand selectCmd = new MySqlCommand(selectQuery, connection);
-        //         selectCmd.Parameters.AddWithValue("@itemName", itemName);
-
-        //         if (connection.State == System.Data.ConnectionState.Closed)
-        //         {
-        //             connection.Open();
-        //         }
-
-        //         object feedbackIdObj = selectCmd.ExecuteScalar();
-
-        //         if (feedbackIdObj != null)
-        //         {
-        //             int feedbackId = Convert.ToInt32(feedbackIdObj);
-
-        //             string insertQuery = "INSERT INTO FeedbackDetails (feedback_id, rating, comments) VALUES (@feedbackId, @rating, @comments)";
-        //             MySqlCommand insertCmd = new MySqlCommand(insertQuery, connection);
-        //             insertCmd.Parameters.AddWithValue("@feedbackId", feedbackId);
-        //             insertCmd.Parameters.AddWithValue("@rating", rating);
-        //             insertCmd.Parameters.AddWithValue("@comments", comments);
-
-        //             int rowsAffected = insertCmd.ExecuteNonQuery();
-
-        //             return rowsAffected > 0 ? "Feedback submitted successfully." : "Failed to submit feedback.";
-        //         }
-        //         else
-        //         {
-        //             return "Item not found. Please provide valid food item name.";
-        //         }
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         return $"Error filling feedback form: {ex.Message}";
-        //     }
-        //     finally
-        //     {
-        //         if (connection.State == System.Data.ConnectionState.Open)
-        //         {
-        //             connection.Close();
-        //         }
-        //     }
-        // }
+       
      public static string FillFeedbackForm(MySqlConnection connection, string itemName, int rating, string comments)
 {
     try
@@ -86,7 +39,6 @@ namespace CafeteriaServer.Operations
 
             if (rowsAffected > 0)
             {
-                // After inserting feedback, update overall_sentiment for the item
                 UpdateOverallSentiment(connection, itemName);
                 return "Feedback submitted successfully.";
             }
@@ -117,10 +69,9 @@ private static List<(double Rating, string Comment, DateTime CreatedAt)> Convert
 {
     var entries = new List<(double Rating, string Comment, DateTime CreatedAt)>();
 
-    // For simplicity, assume default values for rating and created_at
     foreach (var comment in comments)
     {
-        entries.Add((3.0, comment, DateTime.Now)); // Replace with actual rating and created_at if available
+        entries.Add((3.0, comment, DateTime.Now)); 
     }
 
     return entries;
@@ -144,13 +95,13 @@ private static void UpdateOverallSentiment(MySqlConnection connection, string it
         }
     }
 
-    // Convert comments to entries
+
     var entries = ConvertToEntries(comments);
 
-    // Perform sentiment analysis
-    var overallMetrics = RolloutOperations.AnalyzeSentimentsAndRatings(entries);
+    
+    var overallMetrics = SentimentsAnalysis.AnalyzeSentimentsAndRatings(entries);
 
-    // Update overall sentiment in Feedback table
+    
     string updateQuery = "UPDATE Feedback SET overall_sentiment = @overallSentiment " +
                          "WHERE item_name = @itemName";
     MySqlCommand updateCmd = new MySqlCommand(updateQuery, connection);
@@ -184,41 +135,50 @@ private static void UpdateOverallSentiment(MySqlConnection connection, string it
             }
         }
         public static string FetchFeedbackItems(MySqlConnection connection)
+{
+    try
+    {
+        StringBuilder sb = new StringBuilder();
+
+        string todayDateString = DateTime.Today.ToString("yyyy-MM-dd");
+
+        string query = @"
+            SELECT item_name 
+            FROM Feedback 
+            WHERE DATE(created_at) = @todayDate";
+
+        MySqlCommand cmd = new MySqlCommand(query, connection);
+        cmd.Parameters.AddWithValue("@todayDate", todayDateString);
+
+        if (connection.State == System.Data.ConnectionState.Closed)
         {
-            try
-            {
-                StringBuilder sb = new StringBuilder();
-                string query = "SELECT item_name FROM Feedback";
-                MySqlCommand cmd = new MySqlCommand(query, connection);
-
-                if (connection.State == System.Data.ConnectionState.Closed)
-                {
-                    connection.Open();
-                }
-
-                MySqlDataReader reader = cmd.ExecuteReader();
-
-                while (reader.Read())
-                {
-                    string itemName = reader["item_name"].ToString();
-                    sb.AppendLine(itemName);
-                }
-
-                reader.Close();
-                return sb.ToString();
-            }
-            catch (Exception ex)
-            {
-                return $"Error fetching feedback items: {ex.Message}";
-            }
-            finally
-            {
-                if (connection.State == System.Data.ConnectionState.Open)
-                {
-                    connection.Close();
-                }
-            }
+            connection.Open();
         }
+
+        MySqlDataReader reader = cmd.ExecuteReader();
+
+        while (reader.Read())
+        {
+            string itemName = reader["item_name"].ToString();
+            sb.AppendLine(itemName);
+        }
+
+        reader.Close();
+        return sb.ToString();
+    }
+    catch (Exception ex)
+    {
+        return $"Error fetching feedback items: {ex.Message}";
+    }
+    finally
+    {
+        if (connection.State == System.Data.ConnectionState.Open)
+        {
+            connection.Close();
+        }
+    }
+}
+
 
         public static string FetchFeedbackDetails(MySqlConnection connection, string itemName)
         {

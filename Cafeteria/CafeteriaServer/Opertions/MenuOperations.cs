@@ -170,6 +170,7 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Data;
+using CafeteriaServer.Models;
 
 namespace CafeteriaServer.Operations
 {
@@ -180,10 +181,6 @@ namespace CafeteriaServer.Operations
 {
     try
     {
-        if (connection.State == ConnectionState.Closed)
-        {
-            connection.Open();
-        }
         
         
         string menuQuery = "SELECT item_id, name, price, available FROM MenuItem";
@@ -275,59 +272,92 @@ namespace CafeteriaServer.Operations
     }
     finally
     {
-        if (connection.State == ConnectionState.Open)
-        {
-            connection.Close();
-        }
+        Console.WriteLine("Connection.Close");
     }
 }
 
-        public static string AddMenuItem(MySqlConnection connection, string menuType, string itemName, decimal price, int available)
+       public static string AddMenuItem(MySqlConnection connection, string menuType, string itemName, decimal price, int available)
+{
+    try
+    {
+        // Check if the item already exists
+        string checkQuery = "SELECT COUNT(*) FROM MenuItem WHERE name = @itemName";
+        MySqlCommand checkCmd = new MySqlCommand(checkQuery, connection);
+        checkCmd.Parameters.AddWithValue("@itemName", itemName);
+
+        long existingCount = (long)checkCmd.ExecuteScalar();
+
+        if (existingCount > 0)
         {
-            try
-            {
-                int menuId = GetMenuId(connection, menuType);
-                if (menuId == -1)
-                    return "Invalid menu type.";
-
-                string query = $"INSERT INTO MenuItem (menu_id, name, price, available) VALUES (@menuId, @itemName, @price, @available)";
-                MySqlCommand cmd = new MySqlCommand(query, connection);
-                cmd.Parameters.AddWithValue("@menuId", menuId);
-                cmd.Parameters.AddWithValue("@itemName", itemName);
-                cmd.Parameters.AddWithValue("@price", price);
-                cmd.Parameters.AddWithValue("@available", available);
-
-                int rowsAffected = cmd.ExecuteNonQuery();
-
-                if (rowsAffected > 0)
-                    return "New item added successfully.";
-                else
-                    return "Failed to add new item.";
-            }
-            catch (Exception ex)
-            {
-                return "Error adding item: " + ex.Message;
-            }
+            return "Item already exists in the menu.";
         }
-        static int GetMenuId(MySqlConnection connection, string menuType)
+
+        // Get the menu ID based on the menu type
+        int menuId = Utilities.GetMenuId(connection, menuType);
+        if (menuId == -1)
+            return "Invalid menu type.";
+
+        // Insert new item into MenuItem table
+        string insertQuery = "INSERT INTO MenuItem (menu_id, name, price, available) VALUES (@menuId, @itemName, @price, @available)";
+        MySqlCommand cmd = new MySqlCommand(insertQuery, connection);
+        cmd.Parameters.AddWithValue("@menuId", menuId);
+        cmd.Parameters.AddWithValue("@itemName", itemName);
+        cmd.Parameters.AddWithValue("@price", price);
+        cmd.Parameters.AddWithValue("@available", available);
+
+        int rowsAffected = cmd.ExecuteNonQuery();
+
+        if (rowsAffected > 0)
         {
-            try
+            // Notify employees and chef about the new item
+            Notification notifyEmployees = new Notification()
             {
-                string query = $"SELECT menu_id FROM Menu WHERE menu_type = @menuType";
-                MySqlCommand cmd = new MySqlCommand(query, connection);
-                cmd.Parameters.AddWithValue("@menuType", menuType);
+                Message = $"New item added: {itemName}",
+                Date = DateTime.Now,
+                Role = 2
+            };
+            AddNotification(notifyEmployees, connection);
 
-                object result = cmd.ExecuteScalar();
-                if (result != null)
-                    return Convert.ToInt32(result);
-                else
-                    return -1; // Invalid menu type
-            }
-            catch (Exception)
+            Notification notifyChef = new Notification()
             {
-                return -1;
-            }
+                Message = $"New item added: {itemName}",
+                Date = DateTime.Now,
+                Role = 3
+            };
+            AddNotification(notifyChef, connection);
+
+            return "New item added successfully.";
         }
+        else
+        {
+            return "Failed to add new item.";
+        }
+    }
+    catch (Exception ex)
+    {
+        return "Error adding item: " + ex.Message;
+    }
+}
+
+        public static void AddNotification(Notification notification, MySqlConnection connection)
+{
+    try
+    {
+        string query = "INSERT INTO Notifications (message, userType_id, notificationDateTime) VALUES (@message, @userType_id, @notificationDateTime)";
+        MySqlCommand command = new MySqlCommand(query, connection);
+        
+
+        command.Parameters.AddWithValue("@message", notification.Message);
+        command.Parameters.AddWithValue("@userType_id", notification.Role);
+        command.Parameters.AddWithValue("@notificationDateTime", notification.Date);
+        
+        command.ExecuteNonQuery();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Error adding notification: " + ex.Message);
+    }
+}
 
         public static string UpdateMenuItem(MySqlConnection connection, string itemName, decimal price, int available)
         {
