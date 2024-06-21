@@ -25,7 +25,7 @@ namespace CafeteriaServer
 
         public static int GetMenuId(MySqlConnection connection, string menuType)
         {
-               try
+            try
             {
                 string query = $"SELECT menu_id FROM Menu WHERE menu_type = @menuType";
                 MySqlCommand cmd = new MySqlCommand(query, connection);
@@ -35,13 +35,13 @@ namespace CafeteriaServer
                 if (result != null)
                     return Convert.ToInt32(result);
                 else
-                    return -1; 
+                    return -1;
             }
             catch (Exception)
             {
                 return -1;
             }
         }
-        
+
     }
 }

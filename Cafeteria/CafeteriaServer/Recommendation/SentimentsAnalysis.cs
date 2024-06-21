@@ -1,8 +1,10 @@
 using System;
 
-namespace CafeteriaServer.Recommendation{
-    public static class SentimentsAnalysis{
-          public static (double AverageRating, string OverallSentiment, string Recommendation) AnalyzeSentimentsAndRatings(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
+namespace CafeteriaServer.Recommendation
+{
+    public static class SentimentsAnalysis
+    {
+        public static (double AverageRating, string OverallSentiment, string Recommendation) AnalyzeSentimentsAndRatings(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
         {
             var overallMetrics = CalculateOverallSentimentsAndRatings(entries);
             return overallMetrics;

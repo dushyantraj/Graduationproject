@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CafeterialServer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+17f551bed6d96059a2fc84814f1db93c29777a42")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+53e00ba3c21a96d122e9f00b1e858c7da116fbeb")]
 [assembly: System.Reflection.AssemblyProductAttribute("CafeterialServer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CafeterialServer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

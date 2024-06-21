@@ -7,16 +7,16 @@ namespace CafeteriaClient.Operations
     class ChefOperations
     {
 
-          public static void FetchNotificaionForChef()
+        public static void FetchNotificaionForChef()
         {
             string response = ServerCommunicator.SendCommandToServer("FETCH_NOTIFICATION_FOR_CHEF");
             Console.WriteLine("Received from server:\n{0}", response);
         }
-       
+
         public static void RolloutFoodItemForNextDay()
         {
 
-           MenuOperations.FetchMenuItemsWithRecommendation();
+            MenuOperations.FetchMenuItemsWithRecommendation();
 
             Console.WriteLine("Enter the Item IDs (separated by spaces) to roll out for the next day:");
             string itemIdsInput = Console.ReadLine();

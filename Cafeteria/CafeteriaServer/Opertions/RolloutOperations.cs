@@ -8,37 +8,36 @@ namespace CafeteriaServer.Operations
 {
     public static class RolloutOperations
     {
-       public static string FetchRolloutItemsWithFeedback(MySqlConnection connection)
-{
-    try
-    {
-        DateTime today = DateTime.Today;
-        string todayString = today.ToString("yyyy-MM-dd");
-        string rolloutQuery = @"
+        public static string FetchRolloutItemsWithFeedback(MySqlConnection connection)
+        {
+            try
+            {
+                DateTime today = DateTime.Today;
+                string todayString = today.ToString("yyyy-MM-dd");
+                string rolloutQuery = @"
             SELECT rollout_id, item_name, price, available 
             FROM RolloutItems 
             WHERE available = 1 AND DATE(date_rolled_out) = @today";
-        
-        MySqlCommand rolloutCmd = new MySqlCommand(rolloutQuery, connection);
-        rolloutCmd.Parameters.AddWithValue("@today", todayString);
 
-        var rolloutItems = new Dictionary<int, (string ItemName, decimal Price, int Available)>();
+                MySqlCommand rolloutCmd = new MySqlCommand(rolloutQuery, connection);
+                rolloutCmd.Parameters.AddWithValue("@today", todayString);
 
-        using (var reader = rolloutCmd.ExecuteReader())
-        {
-            while (reader.Read())
-            {
-                int rolloutId = reader.GetInt32("rollout_id");
-                string itemName = reader.IsDBNull(reader.GetOrdinal("item_name")) ? "Unnamed Item" : reader.GetString("item_name").Trim();
-                decimal price = reader.IsDBNull(reader.GetOrdinal("price")) ? 0.0m : reader.GetDecimal("price");
-                int available = reader.IsDBNull(reader.GetOrdinal("available")) ? 0 : reader.GetInt32("available");
+                var rolloutItems = new Dictionary<int, (string ItemName, decimal Price, int Available)>();
 
-                rolloutItems[rolloutId] = (itemName, price, available);
-            }
-        }
+                using (var reader = rolloutCmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int rolloutId = reader.GetInt32("rollout_id");
+                        string itemName = reader.IsDBNull(reader.GetOrdinal("item_name")) ? "Unnamed Item" : reader.GetString("item_name").Trim();
+                        decimal price = reader.IsDBNull(reader.GetOrdinal("price")) ? 0.0m : reader.GetDecimal("price");
+                        int available = reader.IsDBNull(reader.GetOrdinal("available")) ? 0 : reader.GetInt32("available");
 
-        // Query to get detailed feedback for items rolled out today
-        string detailedFeedbackQuery = @"
+                        rolloutItems[rolloutId] = (itemName, price, available);
+                    }
+                }
+
+                string detailedFeedbackQuery = @"
             SELECT f.item_name, fd.rating, fd.comments, fd.created_at 
             FROM Feedback f
             JOIN FeedbackDetails fd ON f.feedback_id = fd.feedback_id
@@ -48,70 +47,67 @@ namespace CafeteriaServer.Operations
                 WHERE available = 1 AND DATE(date_rolled_out) = @today
             )";
 
-        MySqlCommand feedbackCmd = new MySqlCommand(detailedFeedbackQuery, connection);
-        feedbackCmd.Parameters.AddWithValue("@today", todayString);
+                MySqlCommand feedbackCmd = new MySqlCommand(detailedFeedbackQuery, connection);
+                feedbackCmd.Parameters.AddWithValue("@today", todayString);
 
-        var detailedFeedbackDict = new Dictionary<string, List<(double Rating, string Comments, DateTime CreatedAt)>>();
+                var detailedFeedbackDict = new Dictionary<string, List<(double Rating, string Comments, DateTime CreatedAt)>>();
 
-        using (var reader = feedbackCmd.ExecuteReader())
-        {
-            while (reader.Read())
-            {
-                string itemName = reader.GetString("item_name").Trim();
-                double rating = reader.IsDBNull(reader.GetOrdinal("rating")) ? 0.0 : reader.GetDouble("rating");
-                string comments = reader.IsDBNull(reader.GetOrdinal("comments")) ? "" : reader.GetString("comments");
-                DateTime createdAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? DateTime.MinValue : reader.GetDateTime("created_at");
-
-                if (!detailedFeedbackDict.ContainsKey(itemName))
+                using (var reader = feedbackCmd.ExecuteReader())
                 {
-                    detailedFeedbackDict[itemName] = new List<(double Rating, string Comments, DateTime CreatedAt)>();
+                    while (reader.Read())
+                    {
+                        string itemName = reader.GetString("item_name").Trim();
+                        double rating = reader.IsDBNull(reader.GetOrdinal("rating")) ? 0.0 : reader.GetDouble("rating");
+                        string comments = reader.IsDBNull(reader.GetOrdinal("comments")) ? "" : reader.GetString("comments");
+                        DateTime createdAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? DateTime.MinValue : reader.GetDateTime("created_at");
+
+                        if (!detailedFeedbackDict.ContainsKey(itemName))
+                        {
+                            detailedFeedbackDict[itemName] = new List<(double Rating, string Comments, DateTime CreatedAt)>();
+                        }
+
+                        detailedFeedbackDict[itemName].Add((rating, comments, createdAt));
+                    }
                 }
 
-                detailedFeedbackDict[itemName].Add((rating, comments, createdAt));
+                StringBuilder response = new StringBuilder();
+
+                foreach (var item in rolloutItems)
+                {
+                    int rolloutId = item.Key;
+                    string itemName = item.Value.ItemName;
+                    decimal price = item.Value.Price;
+                    int available = item.Value.Available;
+
+                    response.AppendLine($"Rollout ID: {rolloutId}, Item Name: {itemName}, Price: {price:F2}, Available: {available}");
+
+                    if (detailedFeedbackDict.ContainsKey(itemName))
+                    {
+                        var feedbackEntries = detailedFeedbackDict[itemName];
+                        var (averageRating, overallSentiment, recommendation) = SentimentsAnalysis.AnalyzeSentimentsAndRatings(feedbackEntries);
+
+                        response.AppendLine($"Rating: {averageRating:F1}, Overall Sentiment: {overallSentiment}, Recommendation: {recommendation}");
+                    }
+
+                }
+
+                return response.ToString();
+            }
+            catch (Exception ex)
+            {
+                return $"Error fetching rollout items: {ex.Message}";
+            }
+            finally
+            {
+                Console.WriteLine("Closing connection...");
             }
         }
 
-        StringBuilder response = new StringBuilder();
-
-        foreach (var item in rolloutItems)
-        {
-            int rolloutId = item.Key;
-            string itemName = item.Value.ItemName;
-            decimal price = item.Value.Price;
-            int available = item.Value.Available;
-
-            response.AppendLine($"Rollout ID: {rolloutId}, Item Name: {itemName}, Price: {price:F2}, Available: {available}");
-
-            if (detailedFeedbackDict.ContainsKey(itemName))
-            {
-                var feedbackEntries = detailedFeedbackDict[itemName];
-                var (averageRating, overallSentiment, recommendation) = SentimentsAnalysis.AnalyzeSentimentsAndRatings(feedbackEntries);
-
-                response.AppendLine($"  Average Rating: {averageRating:F1}, Overall Sentiment: {overallSentiment}, Recommendation: {recommendation}");
-            }
-            else
-            {
-                response.AppendLine("  Average Rating: N/A, Overall Sentiment: N/A, Recommendation: N/A");
-            }
-        }
-
-        return response.ToString();
-    }
-    catch (Exception ex)
-    {
-        return $"Error fetching rollout items: {ex.Message}";
-    }
-    finally
-    {
-        Console.WriteLine("Closing connection...");
-    }
-}
-     
-public static string FetchMenu(MySqlConnection connection)
+        public static string FetchMenu(MySqlConnection connection)
         {
             try
             {
-                
+
                 string menuQuery = "SELECT item_id, name, price, available FROM MenuItem";
                 MySqlCommand menuCmd = new MySqlCommand(menuQuery, connection);
 
@@ -198,7 +194,7 @@ public static string FetchMenu(MySqlConnection connection)
             var overallMetrics = SentimentsAnalysis.CalculateOverallSentimentsAndRatings(entries);
             return overallMetrics;
         }
-        
+
 
     }
 }

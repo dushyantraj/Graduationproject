@@ -978,11 +978,12 @@ namespace CafeteriaServer
 
             try
             {
-
+                TcpListener server = new TcpListener(IPAddress.Any, 13000);
                 connection.Open();
                 Console.WriteLine("Connected to MySQL database.");
 
-                TcpListener server = new TcpListener(IPAddress.Any, 13000);
+                
+
                 server.Start();
                 Console.WriteLine("Server started. Listening for clients...");
 
@@ -1015,7 +1016,7 @@ namespace CafeteriaServer
                                 response = "Invalid login command format.";
                             }
                             break;
-                         case "FETCH_WITH_RECOMMENDATION":
+                        case "FETCH_WITH_RECOMMENDATION":
                             response = MenuOperations.FetchMenuItemsWithFeedback(connection);
                             break;
                         case "MENU_FETCH":
@@ -1108,16 +1109,36 @@ namespace CafeteriaServer
                         case "FETCH_ROLLOUT":
                             response = RolloutOperations.FetchRolloutItemsWithFeedback(connection);
                             break;
+                        // case "SELECT_ITEM":
+                        //     if (parts.Length == 2 && int.TryParse(parts[1], out int selectedRolloutId))
+                        //     {
+                        //         response = MenuOperations.SelectFoodItemForNextDay(connection, selectedRolloutId);
+                        //     }
+                        //     else
+                        //     {
+                        //         response = "Invalid selection command format.";
+                        //     }
+                        //     break;
                         case "SELECT_ITEM":
-                            if (parts.Length == 2 && int.TryParse(parts[1], out int selectedRolloutId))
+                            if (parts.Length > 1)
                             {
-                                response = MenuOperations.SelectFoodItemForNextDay(connection, selectedRolloutId);
+                                try
+                                {
+                                    int[] rolloutIds = parts.Skip(1).Select(int.Parse).ToArray();
+
+                                    response = MenuOperations.SelectFoodItemForNextDay(connection, rolloutIds);
+                                }
+                                catch (FormatException)
+                                {
+                                    response = "Invalid selection command format. Please provide valid rollout IDs.";
+                                }
                             }
                             else
                             {
-                                response = "Invalid selection command format.";
+                                response = "No rollout IDs provided.";
                             }
                             break;
+
                         case "SEND_FEEDBACK_FORM":
                             if (parts.Length >= 2)
                             {
@@ -1160,10 +1181,10 @@ namespace CafeteriaServer
                                 response = "Invalid logout command format.";
                             }
                             break;
-                            case "FETCH_NOTIFICATION_FOR_EMPLOYEE":
+                        case "FETCH_NOTIFICATION_FOR_EMPLOYEE":
                             response = EmployeeSelectionOperations.GetEmployeeNotification((int)RoleEnum.Employee, connection);
                             break;
-                             case "FETCH_NOTIFICATION_FOR_CHEF":
+                        case "FETCH_NOTIFICATION_FOR_CHEF":
                             response = ChefOperation.GetChefNotification((int)RoleEnum.Chef, connection);
                             break;
                         default:

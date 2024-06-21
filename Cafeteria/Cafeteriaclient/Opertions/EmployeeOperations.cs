@@ -5,18 +5,18 @@ namespace CafeteriaClient.Operations
 {
     class EmployeeOperations
     {
-         public static void FetchNotificaionForEmployee()
+        public static void FetchNotificaionForEmployee()
         {
             string response = ServerCommunicator.SendCommandToServer("FETCH_NOTIFICATION_FOR_EMPLOYEE");
             Console.WriteLine("Received from server:\n{0}", response);
         }
-       
+
         public static void SelectFoodItemForNextDay()
         {
             string response = ServerCommunicator.SendCommandToServer("FETCH_ROLLOUT");
             Console.WriteLine("Available items for the next day:\n" + response);
 
-            Console.Write("Enter the Rollout ID of the item you want to select: ");
+            Console.Write("Enter the Rollout ID of the item you want to select: Breakfast, Lunch, Dinner:,");
             string rolloutId = Console.ReadLine();
 
             string request = $"SELECT_ITEM {rolloutId}";
