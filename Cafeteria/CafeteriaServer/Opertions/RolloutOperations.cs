@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using CafeteriaServer.Recommendation;
 using CafeteriaServer.Repositories;
+using CafeteriaServer.Models.DTO;
 namespace CafeteriaServer.Operations
 {
     public class RolloutOperations
@@ -63,7 +64,7 @@ namespace CafeteriaServer.Operations
 
         private List<(int RolloutId, string ItemName, decimal Price, int Available, double AverageRating, string OverallSentiment, string Recommendation)> RecommendItems(
             Dictionary<int, RolloutItem> rolloutItems,
-            Dictionary<string, List<(double Rating, string Comments, DateTime CreatedAt)>> detailedFeedbackDict)
+            Dictionary<string, List<FeedbackDTO>> detailedFeedbackDict)
         {
             var recommendedItems = new List<(int RolloutId, string ItemName, decimal Price, int Available, double AverageRating, string OverallSentiment, string Recommendation)>();
 
@@ -90,7 +91,7 @@ namespace CafeteriaServer.Operations
 
             return recommendedItems;
         }
-        public static (double AverageRating, string OverallSentiment, string Recommendation) AnalyzeSentimentsAndRatings(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
+        public static (double AverageRating, string OverallSentiment, string Recommendation) AnalyzeSentimentsAndRatings(List<FeedbackDTO> entries)
         {
             var overallMetrics = SentimentsAnalysis.AnalyzeSentimentsAndRatings(entries);
             return overallMetrics;
@@ -110,3 +111,4 @@ namespace CafeteriaServer.Operations
         }
     }
 }
+

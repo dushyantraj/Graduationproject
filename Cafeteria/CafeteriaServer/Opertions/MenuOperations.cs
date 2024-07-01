@@ -1,4 +1,3 @@
-
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
@@ -8,6 +7,7 @@ using CafeteriaServer.Services;
 using CafeteriaServer.Utilities;
 using CafeteriaServer.Recommendation;
 using System.Data;
+using CafeteriaServer.Models.DTO;
 namespace CafeteriaServer.Operations
 {
     public class MenuOperations
@@ -152,7 +152,7 @@ namespace CafeteriaServer.Operations
 
         private string GenerateMenuResponse(
             Dictionary<int, (string Name, decimal Price, int Available)> menuItems,
-            Dictionary<string, List<(double Rating, string Comment, DateTime CreatedAt)>> feedbackDict)
+            Dictionary<string, List<FeedbackDTO>> feedbackDict)
         {
             StringBuilder response = new StringBuilder();
             response.AppendLine("Menu Items:");

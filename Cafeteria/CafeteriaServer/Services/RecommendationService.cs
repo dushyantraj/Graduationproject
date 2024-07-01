@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CafeteriaServer.Models.DTO;
 using CafeteriaServer.Recommendation;
 namespace CafeteriaServer.Services
 {
@@ -9,7 +10,7 @@ namespace CafeteriaServer.Services
     {
         public static List<(int ItemId, string Name, decimal Price, int Available, double AverageRating, string OverallSentiment, string Recommendation)> GetRecommendedItems(
           Dictionary<int, (string Name, decimal Price, int Available)> menuItems,
-          Dictionary<string, List<(double Rating, string Comment, DateTime CreatedAt)>> feedbackDict)
+          Dictionary<string, List<FeedbackDTO>> feedbackDict)
         {
             var recommendedItems = new List<(int ItemId, string Name, decimal Price, int Available, double AverageRating, string OverallSentiment, string Recommendation)>();
 

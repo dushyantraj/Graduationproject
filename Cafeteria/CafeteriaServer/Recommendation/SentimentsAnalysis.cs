@@ -1,4 +1,4 @@
-
+using CafeteriaServer.Models.DTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ namespace CafeteriaServer.Recommendation
 {
     public static class SentimentsAnalysis
     {
-        public static (double AverageRating, string OverallSentiment, string Recommendation) AnalyzeSentimentsAndRatings(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
+        public static (double AverageRating, string OverallSentiment, string Recommendation) AnalyzeSentimentsAndRatings(List<FeedbackDTO> entries)
         {
             double averageRating = CalculateAverageRating(entries);
             string overallSentiment = DetermineOverallSentiment(entries);
@@ -24,7 +24,7 @@ namespace CafeteriaServer.Recommendation
             return DetermineSentimentLabel(positiveCount, negativeCount, totalFeedback - positiveCount - negativeCount);
         }
 
-        private static double CalculateAverageRating(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
+        private static double CalculateAverageRating(List<FeedbackDTO> entries)
         {
             if (!entries.Any())
                 return 0.0;
@@ -32,7 +32,7 @@ namespace CafeteriaServer.Recommendation
             return entries.Average(entry => entry.Rating);
         }
 
-        private static string DetermineOverallSentiment(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
+        private static string DetermineOverallSentiment(List<FeedbackDTO> entries)
         {
             int positiveCount = 0;
             int negativeCount = 0;
@@ -40,7 +40,7 @@ namespace CafeteriaServer.Recommendation
 
             foreach (var entry in entries)
             {
-                int sentimentScore = CalculateSentimentScore(entry.Comment);
+                int sentimentScore = CalculateSentimentScore(entry.Comments);
                 if (sentimentScore > 0)
                     positiveCount++;
                 else if (sentimentScore < 0)
@@ -58,7 +58,7 @@ namespace CafeteriaServer.Recommendation
             bool isNegated = false;
 
             string[] words = comment.ToLower()
-                                    .Split(new char[] { ' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
+                                    .Split(new char[] {' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var word in words)
             {
@@ -106,3 +106,4 @@ namespace CafeteriaServer.Recommendation
         }
     }
 }
+
