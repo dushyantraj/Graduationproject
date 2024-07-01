@@ -2,7 +2,7 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using CafeteriaServer.Recommendation;    
+using CafeteriaServer.Recommendation;
 namespace CafeteriaServer.Services
 {
     public class FeedbackService
@@ -46,7 +46,7 @@ namespace CafeteriaServer.Services
 
             return feedbackDict;
         }
-         public Dictionary<string, List<(double Rating, string Comment, DateTime CreatedAt)>> FetchAllFeedback(MySqlConnection connection)
+        public Dictionary<string, List<(double Rating, string Comment, DateTime CreatedAt)>> FetchAllFeedback(MySqlConnection connection)
         {
             string query = @"
                 SELECT f.item_name, fd.rating, fd.comments, fd.created_at 
@@ -78,7 +78,7 @@ namespace CafeteriaServer.Services
 
             return feedbackDict;
         }
-         public Dictionary<string, List<(double Rating, string Comment, DateTime CreatedAt)>> FetchFeedback(MySqlConnection connection)
+        public Dictionary<string, List<(double Rating, string Comment, DateTime CreatedAt)>> FetchFeedback(MySqlConnection connection)
         {
             const string feedbackQuery = "SELECT f.item_name, fd.rating, fd.comments, fd.created_at FROM Feedback f " +
                                          "JOIN FeedbackDetails fd ON f.feedback_id = fd.feedback_id";

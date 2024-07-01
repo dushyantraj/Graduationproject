@@ -34,7 +34,7 @@ namespace CafeteriaServer.Services
                 }
             }
 
-            return null; 
+            return null;
         }
     }
 }

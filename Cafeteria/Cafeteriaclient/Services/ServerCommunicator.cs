@@ -2,9 +2,9 @@ using System;
 using System.Net.Sockets;
 using System.Text;
 
-namespace CafeteriaClient.Communication
+namespace CafeteriaClient.Services
 {
-    class ServerCommunicator
+    public class ServerCommunicator
     {
         public static string SendCommandToServer(string command)
         {

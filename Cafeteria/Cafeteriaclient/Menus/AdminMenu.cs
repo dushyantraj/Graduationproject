@@ -53,7 +53,7 @@ namespace CafeteriaClient.Menus
                     MenuOperations.DeleteMenuItem();
                     break;
                 case "5":
-                    ChefOperations.DiscardFoodItem();
+                    MenuOperations.DiscardFoodItem();
                     break;
                 case "6":
                     Program.Logout();

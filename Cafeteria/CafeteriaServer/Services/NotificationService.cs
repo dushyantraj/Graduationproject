@@ -7,17 +7,15 @@ using System.Text;
 
 namespace CafeteriaServer.Services
 {
-    public class NotificationService // Renamed to singular for consistency
+    public class NotificationService
     {
         private readonly MySqlConnection _connection;
 
-        // Constructor initializes the service with a MySqlConnection
         public NotificationService(MySqlConnection connection)
         {
             _connection = connection;
         }
 
-        // Sends a single notification
         public void SendNotification(Notification notification)
         {
             const string query = "INSERT INTO Notifications (message, userType_id, notificationDateTime) VALUES (@message, @userType_id, @notificationDateTime)";
@@ -30,7 +28,6 @@ namespace CafeteriaServer.Services
             command.ExecuteNonQuery();
         }
 
-        // Static method to send rollout notifications
         public static void RolloutNotification(Notification notification, MySqlConnection connection)
         {
             const string query = "INSERT INTO Notifications (message, userType_id, notificationDateTime) VALUES (@message, @userType_id, @notificationDateTime)";
@@ -43,7 +40,6 @@ namespace CafeteriaServer.Services
             command.ExecuteNonQuery();
         }
 
-        // Fetches the most recent notification for the chef
         public static string GetChefNotification(int userTypeId, MySqlConnection connection)
         {
             try
@@ -79,7 +75,6 @@ namespace CafeteriaServer.Services
             }
         }
 
-        // Fetches all today's notifications for employees
         public static string GetEmployeeNotification(int userTypeId, MySqlConnection connection)
         {
             try
@@ -122,25 +117,22 @@ namespace CafeteriaServer.Services
             }
         }
 
-        // Notifies both employees and chefs about a new item
         public static void NotifyEmployeesAndChef(MySqlConnection connection, string itemName)
         {
             AddNotification(new Notification
             {
                 Message = $"New item added: {itemName}",
                 Date = DateTime.Now,
-                Role = 2 // Employees
+                Role = 2
             }, connection);
 
             AddNotification(new Notification
             {
                 Message = $"New item added: {itemName}",
                 Date = DateTime.Now,
-                Role = 3 // Chef
+                Role = 3
             }, connection);
         }
-
-        // Adds a notification to the database
         public static void AddNotification(Notification notification, MySqlConnection connection)
         {
             const string query = "INSERT INTO Notifications (message, userType_id, notificationDateTime) VALUES (@message, @userType_id, @notificationDateTime)";
@@ -153,7 +145,6 @@ namespace CafeteriaServer.Services
             command.ExecuteNonQuery();
         }
 
-        // Logs exceptions to the console
         private static void LogException(string message, Exception ex)
         {
             Console.WriteLine($"Exception occurred: {message}\nDetails: {ex.Message}");

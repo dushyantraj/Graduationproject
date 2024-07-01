@@ -30,7 +30,7 @@ namespace CafeteriaServer.Services
 
             return menuItems;
         }
-         public Dictionary<int, (string Name, decimal Price, int Available)> FetchMenuItems(MySqlConnection connection)
+        public Dictionary<int, (string Name, decimal Price, int Available)> FetchMenuItems(MySqlConnection connection)
         {
             const string menuQuery = "SELECT item_id, name, price, available FROM MenuItem";
             var menuItems = new Dictionary<int, (string Name, decimal Price, int Available)>();

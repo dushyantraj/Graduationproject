@@ -24,19 +24,11 @@ namespace CafeteriaServer.Operations
             _recommendationService = new RecommendationService();
             _selectionService = new SelectionService();
         }
-        // private static readonly MenuService menuService = new MenuService();
-        // private static readonly FeedbackService feedbackService = new FeedbackService();
-        // private static readonly RecommendationService recommendationService = new RecommendationService();
-        // private static readonly SelectionService selectionService = new SelectionService();
-         public  string FetchMenuItemsWithFeedback(MySqlConnection connection)
+        public string FetchMenuItemsWithFeedback(MySqlConnection connection)
         {
             try
             {
-            //     var menuItems = menuService.FetchMenuItems(connection);
-            //     var feedbackDict = feedbackService.FetchFeedback(connection);
-            //   //      var recommendedItems = MOperations.GetRecommendedItems(menuItems, feedbackDict);
-            //    var recommendedItems = recommendationService.GetRecommendedItems(menuItems, feedbackDict);
-       var menuItems = _menuService.FetchMenuItems(connection);
+                var menuItems = _menuService.FetchMenuItems(connection);
                 var feedbackDict = _feedbackService.FetchFeedback(connection);
 
                 var recommendedItems = RecommendationService.GetRecommendedItems(menuItems, feedbackDict);
@@ -53,13 +45,8 @@ namespace CafeteriaServer.Operations
         {
             try
             {
-                // Fetch menu items
                 var menuItems = _menuService.GetMenuItems(connection);
-                
-                // Fetch feedback for items
                 var feedbackDict = _feedbackService.FetchAllFeedback(connection);
-
-                // Generate the response string
                 return GenerateMenuResponse(menuItems, feedbackDict);
             }
             catch (Exception ex)
@@ -79,8 +66,8 @@ namespace CafeteriaServer.Operations
                 var menuItems = _menuService.FetchMenuItems(connection);
                 var feedbackDict = _feedbackService.FetchFeedback(connection);
 
-             //   var recommendedItems = _recommendationService.GetRecommendedItems(menuItems, feedbackDict);
-var recommendedItems = RecommendationService.GetRecommendedItems(menuItems, feedbackDict);
+
+                var recommendedItems = RecommendationService.GetRecommendedItems(menuItems, feedbackDict);
 
                 return _recommendationService.FormatRecommendedItemsResponse(recommendedItems);
             }
@@ -194,7 +181,7 @@ var recommendedItems = RecommendationService.GetRecommendedItems(menuItems, feed
 
             return response.ToString();
         }
-        
+
 
     }
 }

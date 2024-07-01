@@ -1,5 +1,5 @@
 using MySql.Data.MySqlClient;
-using System;   
+using System;
 using CafeteriaServer.Utilities;
 // CafeteriaServer/Repositories/EmployeeProfileRepository.cs
 namespace CafeteriaServer.Repositories

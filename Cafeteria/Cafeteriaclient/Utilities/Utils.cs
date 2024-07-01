@@ -1,19 +1,6 @@
-// using System;
 
-// namespace CafeteriaClient.Utilities
-// {
-//     class Utils
-//     {
-//         public static void Logout()
-//         {
-//             Console.WriteLine("Logging out...");
-//             Program.currentUsername = null;
-//             Program.currentRole = null;
-//         }
-//     }
-// }
 using System;
-using CafeteriaClient.Communication;
+using CafeteriaClient.Services;
 
 namespace CafeteriaClient.Utilities
 {

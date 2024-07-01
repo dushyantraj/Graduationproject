@@ -17,8 +17,8 @@ namespace CafeteriaServer.Services
                 {
                     int rowsAffected = RecordUserSelection(connection, userId, rolloutId);
 
-                    responseMessage.AppendLine(rowsAffected > 0 
-                        ? $"Rollout item {rolloutId} selected successfully." 
+                    responseMessage.AppendLine(rowsAffected > 0
+                        ? $"Rollout item {rolloutId} selected successfully."
                         : $"Failed to select rollout item {rolloutId}.");
                 }
                 else

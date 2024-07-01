@@ -48,16 +48,16 @@ namespace CafeteriaClient.Menus
                     ChefOperations.RolloutFoodItemForNextDay();
                     break;
                 case "3":
-                    ChefOperations.ViewEmployeeSelections();
+                    EmployeeOperations.ViewEmployeeSelections();
                     break;
                 case "4":
                     ChefOperations.FetchNotificationForChef();
                     break;
                 case "5":
-                    ChefOperations.SendFeedbackForm();
+                    FeedbackOperations.SendFeedbackForm();
                     break;
                 case "6":
-                    ChefOperations.DiscardFoodItem();
+                    MenuOperations.DiscardFoodItem();
                     break;
                 case "7":
                     Program.Logout();

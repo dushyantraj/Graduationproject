@@ -41,19 +41,19 @@ namespace CafeteriaClient.Menus
             switch (choice)
             {
                 case "1":
-                    EmployeeOperations.SelectFoodItemForNextDay();
+                    MenuOperations.SelectFoodItemForNextDay();
                     break;
                 case "2":
-                    EmployeeOperations.FillFeedbackForm();
+                    FeedbackOperations.FillFeedbackForm();
                     break;
                 case "3":
                     EmployeeOperations.FetchNotificationForEmployee();
                     break;
                 case "4":
-                    EmployeeOperations.DetailedFeedback();
+                    FeedbackOperations.DetailedFeedback();
                     break;
                 case "5":
-                    EmployeeOperations.FetchEmployeeNotifications();
+                    EmployeeOperations.FetchNotificationForEmployee();
                     break;
                 case "6":
                     EmployeeOperations.UpdateProfile();
