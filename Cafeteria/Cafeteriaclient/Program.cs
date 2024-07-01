@@ -1,6 +1,4 @@
-
 using System;
-using CafeteriaClient.Communication;
 using CafeteriaClient.Authentications;
 using CafeteriaClient.Menus;
 using CafeteriaClient.Utilities;
@@ -9,59 +7,104 @@ namespace CafeteriaClient
 {
     class Program
     {
-        public static string currentUsername { get; set; }
-        public static string currentRole { get; set; }
+        public static string CurrentUsername { get; private set; }
+        public static string CurrentRole { get; private set; }
 
         static void Main(string[] args)
         {
             while (true)
             {
-                Console.WriteLine("Welcome to Cafeteria Management System");
-                Console.Write("Enter username: ");
-                string username = Console.ReadLine();
-                Console.Write("Enter password: ");
-                string password = Console.ReadLine();
-
-                string loginResponse = Authentication.Login(username, password);
-
-                if (loginResponse.StartsWith("LOGIN_SUCCESS"))
+                DisplayWelcomeMessage();
+                if (AuthenticateUser())
                 {
-                    currentUsername = username;
-                    currentRole = loginResponse.Split(' ')[1];
-                    Console.WriteLine("Login successful. Role: {0}", currentRole);
                     ShowMenu();
-                }
-                else
-                {
-                    Console.WriteLine("Login failed. Server response: {0}", loginResponse);
                 }
             }
         }
 
-        static void ShowMenu()
+        private static void DisplayWelcomeMessage()
         {
-            switch (currentRole)
+            Console.WriteLine("Welcome to Cafeteria Management System");
+        }
+
+        private static bool AuthenticateUser()
+        {
+            Console.Write("Enter username: ");
+            string username = Console.ReadLine();
+            Console.Write("Enter password: ");
+            string password = Console.ReadLine();
+
+            string loginResponse = Authentication.Login(username, password);
+
+            if (loginResponse.StartsWith("LOGIN_SUCCESS"))
             {
-                case "Admin":
-                    AdminMenu.Show();
-                    break;
-                case "Chef":
-                    ChefMenu.Show();
-                    break;
-                case "Employee":
-                    EmployeeMenu.Show();
-                    break;
-                default:
-                    Console.WriteLine("Invalid role. Logging out...");
-                    Logout();
-                    break;
+                CurrentUsername = username;
+                CurrentRole = loginResponse.Split(' ')[1];
+                Console.WriteLine("Login successful. Role: {0}", CurrentRole);
+                return true;
+            }
+            else
+            {
+                Console.WriteLine("Login failed. Server response: {0}", loginResponse);
+                return false;
+            }
+        }
+
+        private static void ShowMenu()
+        {
+            IMenu menu = MenuFactory.GetMenu(CurrentRole);
+            if (menu != null)
+            {
+                menu.Show();
+            }
+            else
+            {
+                Console.WriteLine("Invalid role. Logging out...");
+                Logout();
             }
         }
 
         public static void Logout()
         {
-            currentUsername = null;
-            currentRole = null;
+            Utils.Logout(CurrentUsername);
+            ClearCurrentUser();
+        }
+
+        public static void ClearCurrentUser()
+        {
+            CurrentUsername = null;
+            CurrentRole = null;
+            Console.WriteLine("You have been logged out.");
+        }
+    }
+
+    public static class Roles
+    {
+        public const string Admin = "Admin";
+        public const string Chef = "Chef";
+        public const string Employee = "Employee";
+    }
+
+    public interface IMenu
+    {
+        void Show();
+    }
+
+    public static class MenuFactory
+    {
+        public static IMenu GetMenu(string role)
+        {
+            switch (role)
+            {
+                case Roles.Admin:
+                    return new AdminMenu();
+                case Roles.Chef:
+                    return new ChefMenu();
+                case Roles.Employee:
+                    return new EmployeeMenu();
+                default:
+                    return null;
+            }
         }
     }
 }

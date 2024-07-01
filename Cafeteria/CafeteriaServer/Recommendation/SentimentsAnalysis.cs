@@ -1,4 +1,114 @@
+// using System;
+// using System.Collections.Generic;
+// using System.Linq;
+
+// namespace CafeteriaServer.Recommendation
+// {
+//     public static class SentimentsAnalysis
+//     {
+//         public static (double AverageRating, string OverallSentiment, string Recommendation) AnalyzeSentimentsAndRatings(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
+//         {
+//             double averageRating = CalculateAverageRating(entries);
+//             string overallSentiment = DetermineOverallSentiment(entries);
+//             string recommendation = GenerateRecommendation(averageRating);
+
+//             return (averageRating, overallSentiment, recommendation);
+//         }
+
+//         private static double CalculateAverageRating(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
+//         {
+//             if (!entries.Any())
+//                 return 0.0;
+
+//             return entries.Average(entry => entry.Rating);
+//         }
+
+//         private static string DetermineOverallSentiment(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
+//         {
+//             int positiveCount = 0;
+//             int negativeCount = 0;
+//             int neutralCount = 0;
+
+//             foreach (var entry in entries)
+//             {
+//                 int sentimentScore = CalculateSentimentScore(entry.Comment);
+//                 if (sentimentScore > 0) positiveCount++;
+//                 else if (sentimentScore < 0) negativeCount++;
+//                 else neutralCount++;
+//             }
+
+//             return DetermineSentimentLabel(positiveCount, negativeCount, neutralCount);
+//         }
+
+//         private static int CalculateSentimentScore(string comment)
+//         {
+//             int sentimentScore = 0;
+//             bool isNegated = false;
+
+//             string[] words = comment.ToLower()
+//                                     .Split(new char[] { ' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
+
+//             foreach (var word in words)
+//             {
+//                 if (SentimentWords.NegationWords.Contains(word))
+//                 {
+//                     isNegated = !isNegated;  // Toggle negation for each negation word found
+//                     continue;
+//                 }
+
+//                 if (SentimentWords.PositiveWords.Contains(word))
+//                 {
+//                     sentimentScore += isNegated ? -1 : 1;
+//                     isNegated = false;
+//                 }
+//                 else if (SentimentWords.NegativeWords.Contains(word))
+//                 {
+//                     sentimentScore += isNegated ? 1 : -1;
+//                     isNegated = false;
+//                 }
+//             }
+
+//             return sentimentScore;
+//         }
+
+//         private static string DetermineSentimentLabel(int positiveCount, int negativeCount, int neutralCount)
+//         {
+//             if (positiveCount > negativeCount)
+//                 return "Positive";
+//             else if (negativeCount > positiveCount)
+//                 return "Negative";
+//             else
+//                 return "Neutral";
+//         }
+
+//         private static string GenerateRecommendation(double averageRating)
+//         {
+//             if (averageRating >= 4.0)
+//                 return "Highly recommended";
+//             else if (averageRating >= 3.0)
+//                 return "Recommended";
+//             else if (averageRating >= 2.0)
+//                 return "Average";
+//             else
+//                 return "Not recommended";
+//         }
+
+
+//         public static (double AverageRating, string OverallSentiment, string Recommendation) CalculateOverallSentimentsAndRatings(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
+//         {
+//             return AnalyzeSentimentsAndRatings(entries);
+//         }
+
+//         public static string CalculateOverallSentiment(int positiveCount, int negativeCount, int totalFeedback)
+//         {
+//             if (totalFeedback == 0) return "N/A";
+//             return DetermineSentimentLabel(positiveCount, negativeCount, totalFeedback - positiveCount - negativeCount);
+//         }
+//     }
+// }
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CafeteriaServer.Recommendation
 {
@@ -6,108 +116,100 @@ namespace CafeteriaServer.Recommendation
     {
         public static (double AverageRating, string OverallSentiment, string Recommendation) AnalyzeSentimentsAndRatings(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
         {
-            var overallMetrics = CalculateOverallSentimentsAndRatings(entries);
-            return overallMetrics;
+            double averageRating = CalculateAverageRating(entries);
+            string overallSentiment = DetermineOverallSentiment(entries);
+            string recommendation = GenerateRecommendation(averageRating);
+
+            return (averageRating, overallSentiment, recommendation);
         }
-        public static (double AverageRating, string OverallSentiment, string Recommendation) CalculateOverallSentimentsAndRatings(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
+
+        public static string CalculateOverallSentiment(int positiveCount, int negativeCount, int totalFeedback)
+        {
+            if (totalFeedback == 0)
+                return "N/A";
+            
+            return DetermineSentimentLabel(positiveCount, negativeCount, totalFeedback - positiveCount - negativeCount);
+        }
+
+        private static double CalculateAverageRating(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
+        {
+            if (!entries.Any())
+                return 0.0;
+
+            return entries.Average(entry => entry.Rating);
+        }
+
+        private static string DetermineOverallSentiment(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
         {
             int positiveCount = 0;
             int negativeCount = 0;
             int neutralCount = 0;
 
-            double totalRating = 0;
-
             foreach (var entry in entries)
             {
-                string comment = entry.Comment.ToLower();
-                int sentimentScore = 0;
-                bool isNegated = false;
-
-
-                string[] words = comment.Split(new char[] { ' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
-
-                for (int i = 0; i < words.Length; i++)
-                {
-                    string word = words[i];
-
-                    if (SentimentWords.NegationWords.Contains(word))
-                    {
-                        isNegated = true;
-                        continue;
-                    }
-
-                    if (SentimentWords.PositiveWords.Contains(word))
-                    {
-                        sentimentScore += isNegated ? -1 : 1;
-                        isNegated = false;
-                    }
-                    else if (SentimentWords.NegativeWords.Contains(word))
-                    {
-                        sentimentScore += isNegated ? 1 : -1;
-                        isNegated = false;
-                    }
-                }
-
+                int sentimentScore = CalculateSentimentScore(entry.Comment);
                 if (sentimentScore > 0)
-                {
                     positiveCount++;
-                }
                 else if (sentimentScore < 0)
-                {
                     negativeCount++;
-                }
                 else
-                {
                     neutralCount++;
+            }
+
+            return DetermineSentimentLabel(positiveCount, negativeCount, neutralCount);
+        }
+
+        private static int CalculateSentimentScore(string comment)
+        {
+            int sentimentScore = 0;
+            bool isNegated = false;
+
+            string[] words = comment.ToLower()
+                                    .Split(new char[] { ' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var word in words)
+            {
+                if (SentimentWords.NegationWords.Contains(word))
+                {
+                    isNegated = !isNegated;  // Toggle negation for each negation word found
+                    continue;
                 }
 
-                totalRating += entry.Rating;
+                if (SentimentWords.PositiveWords.Contains(word))
+                {
+                    sentimentScore += isNegated ? -1 : 1;
+                    isNegated = false;
+                }
+                else if (SentimentWords.NegativeWords.Contains(word))
+                {
+                    sentimentScore += isNegated ? 1 : -1;
+                    isNegated = false;
+                }
             }
 
-            double averageRating = entries.Count > 0 ? totalRating / entries.Count : 0.0;
-
-            string overallSentiment = DetermineOverallSentiment(positiveCount, negativeCount, neutralCount);
-
-            string recommendation = averageRating >= 4.0 ? "Highly recommended" :
-                                    averageRating >= 3.0 ? "Recommended" :
-                                    averageRating >= 2.0 ? "Average" :
-                                    "Not recommended";
-
-            return (averageRating, overallSentiment, recommendation);
+            return sentimentScore;
         }
 
-        private static string DetermineOverallSentiment(int positiveCount, int negativeCount, int neutralCount)
+        private static string DetermineSentimentLabel(int positiveCount, int negativeCount, int neutralCount)
         {
             if (positiveCount > negativeCount)
-            {
                 return "Positive";
-            }
             else if (negativeCount > positiveCount)
-            {
                 return "Negative";
-            }
             else
-            {
                 return "Neutral";
-            }
         }
-        public static string CalculateOverallSentiment(int positiveCount, int negativeCount, int totalFeedback)
+
+        private static string GenerateRecommendation(double averageRating)
         {
-            if (totalFeedback == 0) return "N/A";
-
-            if (positiveCount > negativeCount)
-            {
-                return "Positive";
-            }
-            else if (negativeCount > positiveCount)
-            {
-                return "Negative";
-            }
+            if (averageRating >= 4.0)
+                return "Highly recommended";
+            else if (averageRating >= 3.0)
+                return "Recommended";
+            else if (averageRating >= 2.0)
+                return "Average";
             else
-            {
-                return "Neutral";
-            }
+                return "Not recommended";
         }
-
     }
 }

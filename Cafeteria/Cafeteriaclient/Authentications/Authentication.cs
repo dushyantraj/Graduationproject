@@ -13,6 +13,7 @@
 //         }
 //     }
 // }
+//Authentications/Authentication.cs
 using System;
 using CafeteriaClient.Communication;
 
@@ -22,7 +23,7 @@ namespace CafeteriaClient.Authentications
     {
         public static string Login(string username, string password)
         {
-            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            if (IsInputInvalid(username, password))
             {
                 return "Invalid login credentials. Username and password must not be empty.";
             }
@@ -32,17 +33,18 @@ namespace CafeteriaClient.Authentications
 
             try
             {
-                string response = ServerCommunicator.SendCommandToServer(command);
-
-                Console.WriteLine($"Server response for login attempt: {response}");
-
-                return response;
+                return ServerCommunicator.SendCommandToServer(command);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error during login attempt for user {username}: {ex.Message}");
                 return $"Error communicating with server: {ex.Message}";
             }
+        }
+
+        private static bool IsInputInvalid(string username, string password)
+        {
+            return string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password);
         }
     }
 }

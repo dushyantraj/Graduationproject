@@ -1,81 +1,105 @@
 using MySql.Data.MySqlClient;
 using System;
+using CafeteriaServer.Utilities;
 
-
-namespace CafeteriaServer.Operations
+public static class LoginOperations
 {
-    public static class LoginOperations
+    public static string LoginUser(MySqlConnection connection, string username, string password)
     {
-        public static string LoginUser(MySqlConnection connection, string username, string password)
+        try
         {
-            try
+            EnsureConnectionOpen(connection);
+
+            int roleId = GetRoleId(connection, username, password);
+
+            if (roleId != -1)
             {
-                string query = "SELECT RoleID FROM Users WHERE Username = @username AND Password = @password";
-                MySqlCommand cmd = new MySqlCommand(query, connection);
-                cmd.Parameters.AddWithValue("@username", username);
-                cmd.Parameters.AddWithValue("@password", password);
+                string roleName = RelatedUtilites.GetRoleName(connection, roleId);
 
-                object result = cmd.ExecuteScalar();
-
-                if (result != null)
+                if (IsValidRole(roleName))
                 {
-                    int roleId = Convert.ToInt32(result);
-                    string roleName = Utilities.GetRoleName(connection, roleId);
-
-                    if (roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
-                        roleName.Equals("Chef", StringComparison.OrdinalIgnoreCase) ||
-                        roleName.Equals("Employee", StringComparison.OrdinalIgnoreCase))
-                    {
-                        LogUserActivity(connection, username, "LOGIN");
-                        return $"LOGIN_SUCCESS {roleName}";
-                    }
-                    else
-                    {
-                        return "LOGIN_FAILURE Invalid role.";
-                    }
+                    LogUserActivity(connection, username, "LOGIN");
+                    return $"LOGIN_SUCCESS {roleName}";
                 }
                 else
                 {
-                    return "LOGIN_FAILURE Invalid credentials.";
+                    return "LOGIN_FAILURE: Invalid role.";
                 }
             }
-            catch (Exception ex)
+            else
             {
-                return "Error during login: " + ex.Message;
+                return "LOGIN_FAILURE: Invalid credentials.";
             }
         }
-        public static string LogoutUser(MySqlConnection connection, string username)
+        catch (Exception ex)
         {
-            try
-            {
-                Console.WriteLine($"Logging out user: {username}");
-                LogUserActivity(connection, username, "LOGOUT");
-                Console.WriteLine($"Logout event logged for user: {username}");
-                return "LOGOUT_SUCCESS";
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error during logout for user {username}: {ex.Message}");
-                return "Error during logout: " + ex.Message;
-            }
+            LogException("Error during login", ex);
+            return $"Error during login: {ex.Message}";
         }
+    }
 
-        private static void LogUserActivity(MySqlConnection connection, string username, string eventType)
+    public static string LogoutUser(MySqlConnection connection, string username)
+    {
+        try
         {
-            try
-            {
-                string logQuery = "INSERT INTO UserActivityLog (Username, EventType) VALUES (@username, @eventType)";
-                MySqlCommand logCmd = new MySqlCommand(logQuery, connection);
-                logCmd.Parameters.AddWithValue("@username", username);
-                logCmd.Parameters.AddWithValue("@eventType", eventType);
-                logCmd.ExecuteNonQuery();
-                Console.WriteLine($"Activity logged: {username}, {eventType}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error logging activity for user {username}: {ex.Message}");
-            }
-        }
+            EnsureConnectionOpen(connection);
 
+            LogUserActivity(connection, username, "LOGOUT");
+            return "LOGOUT_SUCCESS";
+        }
+        catch (Exception ex)
+        {
+            LogException($"Error during logout for user {username}", ex);
+            return $"Error during logout for user {username}: {ex.Message}";
+        }
+    }
+
+    private static int GetRoleId(MySqlConnection connection, string username, string password)
+    {
+        string query = "SELECT RoleID FROM Users WHERE Username = @username AND Password = @password";
+
+        using (MySqlCommand cmd = new MySqlCommand(query, connection))
+        {
+            cmd.Parameters.AddWithValue("@username", username);
+            cmd.Parameters.AddWithValue("@password", password);
+
+            object result = cmd.ExecuteScalar();
+
+            return result != null ? Convert.ToInt32(result) : -1;
+        }
+    }
+
+    private static bool IsValidRole(string roleName)
+    {
+        var validRoles = new HashSet<string> { "Admin", "Chef", "Employee" };
+        return validRoles.Contains(roleName, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static void LogUserActivity(MySqlConnection connection, string username, string eventType)
+    {
+        string logQuery = "INSERT INTO UserActivityLog (Username, EventType, EventTime) VALUES (@username, @eventType, @eventTime)";
+
+        using (MySqlCommand logCmd = new MySqlCommand(logQuery, connection))
+        {
+            logCmd.Parameters.AddWithValue("@username", username);
+            logCmd.Parameters.AddWithValue("@eventType", eventType);
+            logCmd.Parameters.AddWithValue("@eventTime", DateTime.UtcNow);
+
+            logCmd.ExecuteNonQuery();
+            Console.WriteLine($"Activity logged: {username}, {eventType}");
+        }
+    }
+
+    private static void LogException(string message, Exception ex)
+    {
+        Console.WriteLine($"{message}: {ex.Message}");
+    }
+
+    private static void EnsureConnectionOpen(MySqlConnection connection)
+    {
+        if (connection.State == System.Data.ConnectionState.Closed)
+        {
+            connection.Open();
+        }
     }
 }

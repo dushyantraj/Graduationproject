@@ -1,28 +1,30 @@
-﻿// using System;
+﻿
+// using System;
 // using System.Net;
 // using System.Net.Sockets;
 // using System.Text;
 // using MySql.Data.MySqlClient;
-// using System.Data;
-// using System.Text.RegularExpressions;  
-// namespace MenuServer
+// using CafeteriaServer.Operations;
+// using CafeteriaServer.Models; // Ensure this namespace is correct for RoleEnum
+// using System.Text.RegularExpressions;
+// using CafeteriaServer.Services;
+// using CafeteriaServer.Repositories;
+// using CafeteriaServer.Utilities;
+// namespace CafeteriaServer
 // {
 //     class Program
 //     {
 //         static void Main(string[] args)
 //         {
-//             // MySQL database connection settings
 //             string connectionString = "Server=localhost;Database=CafeteriaDB;Uid=root;Pwd=Admin@123;";
 //             MySqlConnection connection = new MySqlConnection(connectionString);
 
 //             try
 //             {
-//                 // Open the database connection
+//                 TcpListener server = new TcpListener(IPAddress.Any, 13000);
 //                 connection.Open();
 //                 Console.WriteLine("Connected to MySQL database.");
 
-//                 // Start server
-//                 TcpListener server = new TcpListener(IPAddress.Any, 13000);
 //                 server.Start();
 //                 Console.WriteLine("Server started. Listening for clients...");
 
@@ -37,163 +39,11 @@
 //                     string data = Encoding.UTF8.GetString(buffer, 0, bytesRead).Trim();
 //                     Console.WriteLine("Received from client: {0}", data);
 
-//                     string[] parts = data.Split(' ');
-//                     string command = parts[0];
+//                     string response = ProcessCommand(data, connection);
 
-//                     string response = "";
-//                     switch (command)
-//                     {
-//                         case "LOGIN":
-//                             if (parts.Length >= 3)
-//                             {
-//                                 string username = parts[1];
-//                                 string password = parts[2];
-//                                 response = LoginUser(connection, username, password);
-//                             }
-//                             else
-//                             {
-//                                 response = "Invalid login command format.";
-//                             }
-//                             break;
-//                         case "FETCH":
-//                             response = FetchMenuItemsWithFeedback(connection);
-//                             break;
-//                        case "FETCH_ROLLOUT_Feedback":
-//                             response = FetchRolloutItemsWithFeedback(connection);
-//                             break;
-//                         case "ADD":
-//                             if (parts.Length >= 5)
-//                             {
-//                                 string menuType = parts[1]; // Breakfast, Lunch, Dinner
-//                                 string itemName = parts[2];
-//                                 if (decimal.TryParse(parts[3], out decimal price))
-//                                 {
-//                                     int available = int.Parse(parts[4]);
-//                                     response = AddMenuItem(connection, menuType, itemName, price, available);
-//                                 }
-//                                 else
-//                                 {
-//                                     response = "Invalid price format.";
-//                                 }
-//                             }
-//                             else
-//                             {
-//                                 response = "Invalid command format.";
-//                             }
-//                             break;
-//                         case "UPDATE":
-//                             if (parts.Length >= 5)
-//                             {
-//                                 int itemId = int.Parse(parts[1]);
-//                                 string itemName = parts[2];
-//                                 if (decimal.TryParse(parts[3], out decimal price))
-//                                 {
-//                                     int available = int.Parse(parts[4]);
-//                                     response = UpdateMenuItem(connection, itemId, itemName, price, available);
-//                                 }
-//                                 else
-//                                 {
-//                                     response = "Invalid price format.";
-//                                 }
-//                             }
-//                             else
-//                             {
-//                                 response = "Invalid command format.";
-//                             }
-//                             break;
-
-//                         case "DELETE":
-//                             if (parts.Length == 2 && int.TryParse(parts[1], out int deleteItemId))
-//                             {
-//                                 response = DeleteMenuItem(connection, deleteItemId);
-//                             }
-//                             else
-//                             {
-//                                 response = "Invalid delete command format.";
-//                             }
-//                             break;
-//                         case "ROLLOUT":
-//                             if (parts.Length >= 2)
-//                             {
-//                                 string[] itemIdsStr = new string[parts.Length - 1];
-//                                 Array.Copy(parts, 1, itemIdsStr, 0, parts.Length - 1);
-//                                 response = RolloutFoodItemsForNextDay(connection, itemIdsStr);
-//                             }
-//                             else
-//                             {
-//                                 response = "Invalid rollout command format.";
-//                             }
-//                             break;
-//                             case "FETCH_FEEDBACK":
-//                             response = FetchFeedbackItems(connection);
-//                             break;
-//                         case "FETCH_EMPLOYEE_SELECTIONS":
-//                             response = FetchEmployeeSelections(connection);
-//                             break;
-//                             case "FETCH_ROLLOUT":
-//                             response = FetchRolloutItemsWithFeedback(connection);
-//                             break;
-//                             case "SELECT_ITEM":
-//                             if (parts.Length == 2 && int.TryParse(parts[1], out int selectedRolloutId))
-//                             {
-//                                 response = SelectFoodItemForNextDay(connection, selectedRolloutId);
-//                             }
-//         else
-//         {
-//             response = "Invalid selection command format.";
-//         }
-//         break;
-//       case "SEND_FEEDBACK_FORM":
-//     if (parts.Length >= 2)
-//     {
-//         string foodItem = string.Join(" ", parts, 1, parts.Length - 1);
-//         response = SubmitFeedback(connection, foodItem);
-//     }
-//     else
-//     {
-//         response = "Invalid format for sending feedback form.";
-//     }
-//     break;
-//    case "SUBMIT_FEEDBACK":
-//     // Combine the command arguments to handle quotes correctly
-//     string commandArgs = string.Join(" ", parts.Skip(1));
-
-//     // Use regular expressions to match the quoted strings
-//     // Pattern breakdown:
-//     // \"(.*?)\" - Match quoted strings for itemName and comments
-//     // \\s(\\d) - Match the single digit for rating after a space
-//     Regex feedbackRegex = new Regex("\"(.*?)\"\\s(\\d)\\s\"(.*?)\"");
-
-//     Match match = feedbackRegex.Match(commandArgs);
-//     if (match.Success)
-//     {
-//         string itemName = match.Groups[1].Value; // Group 1: itemName
-//         int rating = int.Parse(match.Groups[2].Value); // Group 2: rating
-//         string comments = match.Groups[3].Value; // Group 3: comments
-
-//         // Log for debugging
-//         Console.WriteLine($"Parsed Feedback - Item: {itemName}, Rating: {rating}, Comments: {comments}");
-
-//         // Call the method to handle feedback
-//         response = FillFeedbackForm(connection, itemName, rating, comments);
-//     }
-//     else
-//     {
-//         response = "Invalid feedback format. Please provide a valid format.";
-//     }
-//     break;
-
-
-//                       default:
-//                             response = "Invalid command.";
-//                             break;
-//                     }
-
-//                     // Send response back to client
 //                     SendResponseToClient(stream, response);
 //                     Console.WriteLine("Sent to client: {0}", response);
 
-//                     // Clean up
 //                     stream.Close();
 //                     client.Close();
 //                 }
@@ -204,7 +54,6 @@
 //             }
 //             finally
 //             {
-//                 // Close database connection
 //                 if (connection != null && connection.State == System.Data.ConnectionState.Open)
 //                 {
 //                     connection.Close();
@@ -213,766 +62,1013 @@
 //             }
 //         }
 
+//         static string ProcessCommand(string data, MySqlConnection connection)
+//         {
+//             string[] parts = data.Split(' ');
+//             string command = parts[0];
+//             string response = "";
+
+//             switch (command)
+//             {
+//                 case "LOGIN":
+//         if (parts.Length >= 3)
+//         {
+//             string username = parts[1];
+//             string password = parts[2];
+//             response = LoginOperations.LoginUser(connection, username, password);
+//         }
+//         else
+//         {
+//             response = "Invalid login command format.";
+//         }
+//         break;
+//                 case "FETCH_WITH_RECOMMENDATION":
+//                       var MeNuOperation = new MenuOperations();
+//                     response = MeNuOperation.FetchMenuItemsWithFeedback(connection);
+//                     break;
+//               case "MENU_FETCH":
+//     var menuOperations = new MenuOperations();  // Create an instance of MenuOperations
+//     response = menuOperations.FetchMenu(connection);  // Call the FetchMenu method on the instance
+//     break;
+
+//                 // case "FETCH_ROLLOUT_Feedback":
+//                 //     response = RolloutOperations.FetchRolloutItemsWithFeedback(connection);
+//                 //     break;
+//                case "ADD":
+//         if (parts.Length >= 6)
+//         {
+//             string menuType = parts[1];
+//             string itemName = string.Join(" ", parts, 2, parts.Length - 5).Trim('"').Trim();
+//             string foodType = parts[parts.Length - 1];
+
+//             if (decimal.TryParse(parts[parts.Length - 3], out decimal price))
+//             {
+//                 if (int.TryParse(parts[parts.Length - 2], out int available) && (available == 0 || available == 1))
+//                 {
+//                     var addMenuOperation = new MenuOperations();  // Create an instance of MenuOperations
+//                     response = addMenuOperation.AddMenuItemToMenu(connection, menuType, itemName, price, available, foodType);
+//                 }
+//                 else
+//                 {
+//                     response = "Invalid availability format.";
+//                 }
+//             }
+//             else
+//             {
+//                 response = "Invalid price format.";
+//             }
+//         }
+//         else
+//         {
+//             response = "Invalid command format.";
+//         }
+//         break;
+
+//     case "UPDATE":
+//         if (parts.Length >= 4)
+//         {
+//             // Combine all parts from index 1 to length - 3 to get the full item name
+//             string itemName = string.Join(" ", parts.Skip(1).Take(parts.Length - 3)).Trim('"');
+
+//             if (decimal.TryParse(parts[parts.Length - 2], out decimal price))
+//             {
+//                 if (int.TryParse(parts[parts.Length - 1], out int available) && (available == 0 || available == 1))
+//                 {
+//                     var updateMenuOperation = new MenuOperations();  // Create an instance of MenuOperations
+//                     response = updateMenuOperation.UpdateMenuItemInMenu(connection, itemName, price, available);
+//                 }
+//                 else
+//                 {
+//                     response = "Invalid availability format.";
+//                 }
+//             }
+//             else
+//             {
+//                 response = "Invalid price format.";
+//             }
+//         }
+//         else
+//         {
+//             response = "Invalid command format.";
+//         }
+//         break;
+
+//     case "DELETE":
+//         if (parts.Length == 2 && int.TryParse(parts[1], out int deleteItemId))
+//         {
+//             var deleteMenuOperation = new MenuOperations();  // Create an instance of MenuOperations
+//             response = deleteMenuOperation.DeleteMenuItemFromMenu(connection, deleteItemId);
+//         }
+//         else
+//         {
+//             response = "Invalid delete command format.";
+//         }
+//         break;
+//                     // Example usage in Program.cs or wherever you're handling the ROLLOUT command
+// case "ROLLOUT":
+//     if (parts.Length >= 2)
+//     {
+//         string[] itemIdsStr = new string[parts.Length - 1];
+//         Array.Copy(parts, 1, itemIdsStr, 0, parts.Length - 1);
+
+//         // Assuming you have an instance of `MySqlConnection` named `connection`
+//         // And the necessary dependencies for `RolloutManager`
+//         var rolloutRepository = new RolloutRepository(connection); // Example, replace with actual instantiation
+//         var notificationService = new NotificationService(connection); // Example, replace with actual instantiation
+
+//         // Create an instance of `RolloutManager` with the necessary dependencies
+//         var rolloutManager = new RolloutManager(rolloutRepository, notificationService);
+
+//         // Use the instance to call the method
+//         response = rolloutManager.RolloutFoodItemsForNextDay(connection, itemIdsStr);
+//     }
+//     else
+//     {
+//         response = "Invalid rollout command format.";
+//     }
+//     break;
+
+//                 case "FETCH_FEEDBACK":
+//                  FeedbackService feedbackServiceFetch = new FeedbackService();
+//                         response = feedbackServiceFetch.FetchFeedbackItems(connection);
+//                         break;
+                    
+            
+// case "FETCH_EMPLOYEE_SELECTIONS":
+//     try
+//     {
+//         // Create an instance of EmployeeSelectionService with the MySqlConnection
+//         var employeeSelectionService = new EmployeeSelectionService(connection);
+
+//         // Call the FetchEmployeeSelections method on the service instance
+//         response = employeeSelectionService.FetchEmployeeSelections();
+//     }
+//     catch (Exception ex)
+//     {
+//         // Handle exceptions gracefully
+//         Console.WriteLine($"Error fetching employee selections: {ex.Message}");
+//         response = "Error fetching employee selections";
+//     }
+//     break;
+// case "FETCH_ROLLOUT":
+//                             if (parts.Length >= 2) // Make sure we have enough parts
+//                             {
+//                                 string username = parts[1]; // This is the username now
+//                                 var rolloutOperations = new RolloutOperations(); // Create an instance of RolloutOperations
+//                                 response = rolloutOperations.FetchRolloutItemsWithFeedback(connection, username); // Call the instance method
+//                             }
+//                             else
+//                             {
+//                                 response = "Invalid command format for fetching rollout items.";
+//                             }
+//                             break;
+//                 case "SELECT_ITEM":
+//     if (parts.Length > 1)
+//     {
+//         try
+//         {
+//             var profileRepository = new EmployeeProfileRepository();
+//             string username = parts[1];  // Assuming username is directly in parts[1], adjust as needed
+//             int[] rolloutIds = parts.Skip(2).Select(int.Parse).ToArray();  // Skip first part (command) and username
+
+//             int userId = profileRepository.GetUserIdByUsername(connection, username);
+//             if (userId != -1) // Assuming -1 indicates user not found; adjust as per your implementation
+//             {
+//                 var selectionService = new SelectionService();  // Create an instance of SelectionService
+//                 response = selectionService.SelectFoodItemsForNextDay(connection, userId, rolloutIds);
+//             }
+//             else
+//             {
+//                 response = $"User '{username}' not found.";  // Adjust error message as needed
+//             }
+//         }
+//         catch (FormatException)
+//         {
+//             response = "Invalid selection command format. Please provide valid rollout IDs.";
+//         }
+//         catch (Exception ex)
+//         {
+//             response = $"Error selecting items: {ex.Message}";
+//             // Log the exception for debugging or logging purposes
+//         }
+//     }
+//     else
+//     {
+//         response = "No rollout IDs provided.";
+//     }
+//     break;
+//      case "SEND_FEEDBACK_FORM":
+//                     {
+//                         if (parts.Length >= 2)
+//                         {
+//                             // Create instance of FeedbackService with a unique variable name for this case
+//                             FeedbackService feedbackServiceForm = new FeedbackService();
+//                             string foodItem = string.Join(" ", parts, 1, parts.Length - 1);
+//                             response = feedbackServiceForm.SubmitFeedback(connection, foodItem);
+//                         }
+//                         else
+//                         {
+//                             response = "Invalid format for sending feedback form.";
+//                         }
+//                         break;
+//                     }
+
+//               case "SUBMIT_FEEDBACK":
+//                     {
+//                         string commandArgs = string.Join(" ", parts.Skip(1));
+//                         Regex feedbackRegex = new Regex("\"(.*?)\"\\s(\\d)\\s\"(.*?)\"");
+
+//                         Match match = feedbackRegex.Match(commandArgs);
+//                         if (match.Success)
+//                         {
+//                             // Create instance of FeedbackService with a unique variable name for this case
+//                             FeedbackService feedbackServiceSubmit = new FeedbackService();
+//                             string itemName = match.Groups[1].Value; // Group 1: itemName
+//                             int rating = int.Parse(match.Groups[2].Value); // Group 2: rating
+//                             string comments = match.Groups[3].Value; // Group 3: comments
+
+//                             Console.WriteLine($"Parsed Feedback - Item: {itemName}, Rating: {rating}, Comments: {comments}");
+//                             response = feedbackServiceSubmit.FillFeedbackForm(connection, itemName, rating, comments);
+//                         }
+//                         else
+//                         {
+//                             response = "Invalid feedback format. Please provide a valid format.";
+//                         }
+//                         break;
+//                     }
+//                 case "LOGOUT":
+//                     if (parts.Length >= 2)
+//                     {
+//                         response = LoginOperations.LogoutUser(connection, parts[1]);
+//                     }
+//                     else
+//                     {
+//                         response = "Invalid logout command format.";
+//                     }
+//                     break;
+//                 case "FETCH_NOTIFICATION_FOR_EMPLOYEE":
+//                     response = NotificationService.GetEmployeeNotification((int)RoleEnum.Employee, connection);
+//                     break;
+//                 case "FETCH_NOTIFICATION_FOR_CHEF":
+//                     response = NotificationService.GetChefNotification((int)RoleEnum.Chef, connection);
+//                     break;
+//                 case "FETCH_NOTIFICATIONS":
+//                     int userTypeId = 3;
+//                     response = DiscardMenu.FetchNotificationsForEmployees(userTypeId, connection);
+//                     break;
+
+//                 case "FETCH_DISCARD_MENU_ITEMS":
+//                     response = DiscardMenu.FetchMenuItemsWithNegativeFeedback(connection);
+//                     break;
+//                 case "REMOVE_DISCARD_MENU_ITEM":
+//                     if (parts.Length > 1)
+//                     {
+//                         string itemName = string.Join(" ", parts.Skip(1));
+//                         itemName = itemName.Trim();
+//                         DiscardMenu.RemoveMenuItem(connection, itemName);
+//                         response = $"Removed {itemName} from discard menu items.";
+//                     }
+//                     else
+//                     {
+//                         response = "Invalid command format for removing discard menu item.";
+//                     }
+//                     break;
+
+//                 case "GET_DETAILED_FEEDBACK":
+//                     if (parts.Length > 1)
+//                     {
+//                         string itemName = parts[1];
+//                         response = DiscardMenu.RollOutFoodForDetailsFeedback(connection, itemName);
+//                     }
+//                     else
+//                     {
+//                         response = "Invalid command format for getting detailed feedback.";
+//                     }
+//                     break;
+//                 case "ROLL_OUT_FEEDBACK":
+//                     if (parts.Length > 1)
+//                     {
+//                         string itemName = string.Join(" ", parts.Skip(1)).Trim();
+//                         response = DiscardMenu.RollOutFoodForDetailsFeedback(connection, itemName);
+//                     }
+//                     else
+//                     {
+//                         response = "Invalid command format for rolling out food for feedback.";
+//                     }
+//                     break;
+//                 case "SUBMIT_DETAILED_FEEDBACK":
+//                     if (parts.Length >= 5)
+//                     {
+//                         // Use a different variable name instead of 'command' to avoid conflict
+//                         string feedbackCommand = string.Join(" ", parts.Skip(1));
+//                         var feedbackParts = ParseFeedbackCommand(feedbackCommand);
+
+//                         if (feedbackParts.Length == 4) // itemName, question1Response, question2Response, question3Response
+//                         {
+//                             string itemName = feedbackParts[0];
+//                             string question1Response = feedbackParts[1];
+//                             string question2Response = feedbackParts[2];
+//                             string question3Response = feedbackParts[3];
+
+//                             response = DiscardMenu.SubmitDetailedFeedback(connection, itemName, question1Response, question2Response, question3Response);
+//                         }
+//                         else
+//                         {
+//                             response = "Invalid command format for submitting detailed feedback.";
+//                         }
+//                     }
+//                     else
+//                     {
+//                         response = "Invalid command format for submitting detailed feedback.";
+//                     }
+//                     break;
+              
+// case "UPDATE_PROFILE":
+//     if (parts.Length >= 6) // Ensure there are enough parts
+//     {
+//         string username = parts[1]; // This is the username
+
+//         // Reconstruct the remaining parts into a single string for easier handling
+//         string remainingInput = string.Join(" ", parts.Skip(2));
+
+//         // Use a regex to split the string respecting quoted sections
+//         string[] preferencesParts = Regex.Matches(remainingInput, @"[\""].+?[\""]|[^ ]+")
+//                                           .Cast<Match>()
+//                                           .Select(m => m.Value.Trim('"'))
+//                                           .ToArray();
+
+//         if (preferencesParts.Length >= 4)
+//         {
+//             try
+//             {
+//                 // Assign values to variables correctly
+//                 string preference = preferencesParts[0];
+//                 string spiceLevel = preferencesParts[1];
+//                 string cuisinePreference = preferencesParts[2];
+//                 bool sweetTooth = preferencesParts[3].Equals("true", StringComparison.OrdinalIgnoreCase);
+
+//                 // Create instances of the required classes
+//                 var profileRepository = new EmployeeProfileRepository();
+//                 var profileOperations = new EmployeeProfileOperations();
+
+//                 // Fetch UserID based on the provided username
+//                 int userId = profileRepository.GetUserIdByUsername(connection, username);
+//                 Console.WriteLine($"Username: {username}, UserID: {userId}");
+
+//                 if (userId != -1)
+//                 {
+//                     // Call the instance method using the created instance
+//                     response = profileOperations.UpdateOrCreateProfile(connection, userId, preference, spiceLevel, cuisinePreference, sweetTooth);
+//                 }
+//                 else
+//                 {
+//                     response = "Error: Unable to retrieve UserID.";
+//                 }
+//             }
+//             catch (Exception ex)
+//             {
+//                 response = $"Error processing the UPDATE_PROFILE command: {ex.Message}";
+//             }
+//         }
+//         else
+//         {
+//             response = "Invalid command format for updating employee profile.";
+//         }
+//     }
+//     else
+//     {
+//         response = "Invalid command format for updating employee profile.";
+//     }
+//     break;
+
+
+              
+//                 case "FETCH_DETAILED_FEEDBACK_QUESTIONS":
+//                     if (parts.Length > 1)
+//                     {
+//                         string itemName = string.Join(" ", parts.Skip(1)).Trim();
+//                         response = DiscardMenu.GetDetailedFeedbackQuestions(itemName);
+//                     }
+//                     else
+//                     {
+//                         response = "Invalid command format for fetching detailed feedback questions.";
+//                     }
+//                     break;
+
+
+//                 default:
+//                     response = "Invalid command.";
+//                     break;
+//             }
+
+//             return response;
+//         }
+
+//         private static string RemoveSurroundingQuotes(string input)
+//         {
+//             if (input.StartsWith("\"") && input.EndsWith("\""))
+//             {
+//                 return input.Substring(1, input.Length - 2);
+//             }
+//             return input;
+//         }
+
+//         // Helper method to parse the feedback command
+//         private static string[] ParseFeedbackCommand(string commandText)
+//         {
+//             var matches = System.Text.RegularExpressions.Regex.Matches(commandText, @"(?<=^| )\""(\\.|[^\""])*\""|[^ ]+");
+//             return matches.Select(m => m.Value.Trim('"')).ToArray();
+//         }
+//         static void SendResponseToClient(NetworkStream stream, string response)
+//         {
+//             byte[] responseBytes = Encoding.UTF8.GetBytes(response);
+//             stream.Write(responseBytes, 0, responseBytes.Length);
+//         }
+//     }
+
+//  },
+// using System;
+// using System.Net;
+// using System.Net.Sockets;
+// using System.Text;
+// using MySql.Data.MySqlClient;
+// using CafeteriaServer.Operations;
+// using CafeteriaServer.Models; // Ensure this namespace is correct for RoleEnum
+// using System.Text.RegularExpressions;
+// using CafeteriaServer.Services;
+// using CafeteriaServer.Repositories;
+// using CafeteriaServer.Utilities;
+
+// using System.Collections.Generic;
+
+// namespace CafeteriaServer
+// {
+//     class Program
+//     {
+//         static void Main(string[] args)
+//         {
+//             string connectionString = "Server=localhost;Database=CafeteriaDB;Uid=root;Pwd=Admin@123;";
+//             MySqlConnection connection = new MySqlConnection(connectionString);
+
+//             try
+//             {
+//                 TcpListener server = new TcpListener(IPAddress.Any, 13000);
+//                 connection.Open();
+//                 Console.WriteLine("Connected to MySQL database.");
+
+//                 server.Start();
+//                 Console.WriteLine("Server started. Listening for clients...");
+
+//                 while (true)
+//                 {
+//                     TcpClient client = server.AcceptTcpClient();
+//                     Console.WriteLine("Client connected.");
+
+//                     NetworkStream stream = client.GetStream();
+//                     byte[] buffer = new byte[1024];
+//                     int bytesRead = stream.Read(buffer, 0, buffer.Length);
+//                     string data = Encoding.UTF8.GetString(buffer, 0, bytesRead).Trim();
+//                     Console.WriteLine("Received from client: {0}", data);
+
+//                     string response = ProcessCommand(data, connection);
+
+//                     SendResponseToClient(stream, response);
+//                     Console.WriteLine("Sent to client: {0}", response);
+
+//                     stream.Close();
+//                     client.Close();
+//                 }
+//             }
+//             catch (Exception ex)
+//             {
+//                 Console.WriteLine("Error: {0}", ex.Message);
+//             }
+//             finally
+//             {
+//                 if (connection != null && connection.State == System.Data.ConnectionState.Open)
+//                 {
+//                     connection.Close();
+//                     Console.WriteLine("Disconnected from MySQL database.");
+//                 }
+//             }
+//         }
+
+//         static string ProcessCommand(string data, MySqlConnection connection)
+//         {
+//             string[] parts = data.Split(' ');
+//             string command = parts[0];
+//             string response = "";
+
+//             switch (command)
+//             {
+//                 case "LOGIN":
+//                     response = HandleLoginCommand(parts, connection);
+//                     break;
+//                 case "FETCH_WITH_RECOMMENDATION":
+//                     response = HandleFetchMenuItemsWithFeedback(connection);
+//                     break;
+//                 case "MENU_FETCH":
+//                     response = HandleMenuFetch(connection);
+//                     break;
+//                 case "ADD":
+//                     response = HandleAddMenuItem(parts, connection);
+//                     break;
+//                 case "UPDATE":
+//                     response = HandleUpdateMenuItem(parts, connection);
+//                     break;
+//                 case "DELETE":
+//                     response = HandleDeleteMenuItem(parts, connection);
+//                     break;
+//                 case "ROLLOUT":
+//                     response = HandleRolloutCommand(parts, connection);
+//                     break;
+//                 case "FETCH_FEEDBACK":
+//                     response = HandleFetchFeedback(connection);
+//                     break;
+//                 case "FETCH_EMPLOYEE_SELECTIONS":
+//                     response = HandleFetchEmployeeSelections(connection);
+//                     break;
+//                 case "FETCH_ROLLOUT":
+//                     response = HandleFetchRolloutItems(parts, connection);
+//                     break;
+//                 case "SELECT_ITEM":
+//                     response = HandleSelectItem(parts, connection);
+//                     break;
+//                 case "SEND_FEEDBACK_FORM":
+//                     response = HandleSendFeedbackForm(parts, connection);
+//                     break;
+//                 case "SUBMIT_FEEDBACK":
+//                     response = HandleSubmitFeedback(parts, connection);
+//                     break;
+//                 case "LOGOUT":
+//                     response = HandleLogout(parts, connection);
+//                     break;
+//                 case "FETCH_NOTIFICATION_FOR_EMPLOYEE":
+//                     response = HandleFetchEmployeeNotification(connection);
+//                     break;
+//                 case "FETCH_NOTIFICATION_FOR_CHEF":
+//                     response = HandleFetchChefNotification(connection);
+//                     break;
+//                 case "FETCH_NOTIFICATIONS":
+//                     response = HandleFetchNotifications(connection);
+//                     break;
+//                 case "FETCH_DISCARD_MENU_ITEMS":
+//                     response = HandleFetchDiscardMenuItems(connection);
+//                     break;
+//                 case "REMOVE_DISCARD_MENU_ITEM":
+//                     response = HandleRemoveDiscardMenuItem(parts, connection);
+//                     break;
+//                 case "GET_DETAILED_FEEDBACK":
+//                     response = HandleGetDetailedFeedback(parts, connection);
+//                     break;
+//                 case "ROLL_OUT_FEEDBACK":
+//                     response = HandleRollOutFeedback(parts, connection);
+//                     break;
+//                 case "SUBMIT_DETAILED_FEEDBACK":
+//                     response = HandleSubmitDetailedFeedback(parts, connection);
+//                     break;
+//                 case "UPDATE_PROFILE":
+//                     response = HandleUpdateProfile(parts, connection);
+//                     break;
+//                 case "FETCH_DETAILED_FEEDBACK_QUESTIONS":
+//                     response = HandleFetchDetailedFeedbackQuestions(parts, connection);
+//                     break;
+//                 default:
+//                     response = "Invalid command.";
+//                     break;
+//             }
+
+//             return response;
+//         }
+
 //         static void SendResponseToClient(NetworkStream stream, string response)
 //         {
 //             byte[] responseBytes = Encoding.UTF8.GetBytes(response);
 //             stream.Write(responseBytes, 0, responseBytes.Length);
 //         }
 
-// // New FillFeedbackForm method
-// private static string FillFeedbackForm(MySqlConnection connection, string itemName, int rating, string comments)
-// {
-//     try
-//     {
-//         FetchFeedbackItems(connection);
-//         // Check if the item exists in the Feedback table
-//         string selectQuery = "SELECT feedback_id FROM Feedback WHERE item_name = @itemName";
-//         MySqlCommand selectCmd = new MySqlCommand(selectQuery, connection);
-//         selectCmd.Parameters.AddWithValue("@itemName", itemName);
+//         // Command Handlers (Move each to respective service files)
 
-//         // Only open the connection if it's not already open
-//         if (connection.State == System.Data.ConnectionState.Closed)
+//         static string HandleLoginCommand(string[] parts, MySqlConnection connection)
 //         {
-//             connection.Open();
-//         }
-
-//         object feedbackIdObj = selectCmd.ExecuteScalar();
-
-//         if (feedbackIdObj != null)
-//         {
-//             int feedbackId = Convert.ToInt32(feedbackIdObj);
-
-//             // Insert new feedback into FeedbackDetails table
-//             string insertQuery = "INSERT INTO FeedbackDetails (feedback_id, rating, comments) VALUES (@feedbackId, @rating, @comments)";
-//             MySqlCommand insertCmd = new MySqlCommand(insertQuery, connection);
-//             insertCmd.Parameters.AddWithValue("@feedbackId", feedbackId);
-//             insertCmd.Parameters.AddWithValue("@rating", rating);
-//             insertCmd.Parameters.AddWithValue("@comments", comments);
-
-//             int rowsAffected = insertCmd.ExecuteNonQuery();
-
-//             return rowsAffected > 0 ? "Feedback submitted successfully." : "Failed to submit feedback.";
-//         }
-//         else
-//         {
-//             return "Item not found. Please provide valid food item name.";
-//         }
-//     }
-//     catch (Exception ex)
-//     {
-//         return $"Error filling feedback form: {ex.Message}";
-//     }
-//     finally
-//     {
-//         if (connection.State == System.Data.ConnectionState.Open)
-//         {
-//             connection.Close();
-//         }
-//     }
-// }
-// // Function to fetch the list of food items selected by chef for feedback
-//  static string FetchFeedbackItems(MySqlConnection connection)
-//     {
-//         try
-//         {
-//             StringBuilder sb = new StringBuilder();
-//             string query = "SELECT item_name FROM Feedback";
-//             MySqlCommand cmd = new MySqlCommand(query, connection);
-//             MySqlDataReader reader = cmd.ExecuteReader();
-
-//             while (reader.Read())
+//             if (parts.Length >= 3)
 //             {
-//                 string itemName = reader.GetString("item_name");
-//                 sb.AppendLine(itemName);
-//             }
-
-//             reader.Close();
-
-//             return sb.ToString();
-//         }
-//         catch (Exception ex)
-//         {
-//             return "Error fetching feedback items: " + ex.Message;
-//         }
-//     }
-
-//        static string LoginUser(MySqlConnection connection, string username, string password)
-// {
-//     try
-//     {
-//         string query = "SELECT RoleID FROM Users WHERE Username = @username AND Password = @password";
-//         MySqlCommand cmd = new MySqlCommand(query, connection);
-//         cmd.Parameters.AddWithValue("@username", username);
-//         cmd.Parameters.AddWithValue("@password", password);
-
-//         object result = cmd.ExecuteScalar();
-
-//         if (result != null)
-//         {
-//             int roleId = Convert.ToInt32(result);
-//             string roleName = GetRoleName(connection, roleId);
-
-//             // Ensure the role is valid for the application
-//             if (roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
-//                 roleName.Equals("Chef", StringComparison.OrdinalIgnoreCase) ||
-//                 roleName.Equals("Employee", StringComparison.OrdinalIgnoreCase))
-//             {
-//                 return $"LOGIN_SUCCESS {roleName}";
+//                 string username = parts[1];
+//                 string password = parts[2];
+//                 return LoginOperations.LoginUser(connection, username, password);
 //             }
 //             else
 //             {
-//                 return "LOGIN_FAILURE Invalid role.";
+//                 return "Invalid login command format.";
 //             }
 //         }
-//         else
+
+//         static string HandleFetchMenuItemsWithFeedback(MySqlConnection connection)
 //         {
-//             return "LOGIN_FAILURE Invalid credentials.";
+//             return MenuOperations.FetchMenuItemsWithFeedback(connection);
 //         }
-//     }
-//     catch (Exception ex)
-//     {
-//         return "Error during login: " + ex.Message;
-//     }
-// }
 
-//         static string GetRoleName(MySqlConnection connection, int roleId)
+//         static string HandleMenuFetch(MySqlConnection connection)
 //         {
-//             try
+//             var menuOperations = new MenuOperations();
+//             return menuOperations.FetchMenu(connection);
+//         }
+
+//         static string HandleAddMenuItem(string[] parts, MySqlConnection connection)
+//         {
+//             if (parts.Length >= 6)
 //             {
-//                 string query = "SELECT RoleName FROM Roles WHERE RoleID = @roleId";
-//                 MySqlCommand cmd = new MySqlCommand(query, connection);
-//                 cmd.Parameters.AddWithValue("@roleId", roleId);
+//                 string menuType = parts[1];
+//                 string itemName = string.Join(" ", parts, 2, parts.Length - 5).Trim('"').Trim();
+//                 string foodType = parts[parts.Length - 1];
 
-//                 object result = cmd.ExecuteScalar();
-
-//                 if (result != null)
+//                 if (decimal.TryParse(parts[parts.Length - 3], out decimal price))
 //                 {
-//                     return result.ToString();
-//                 }
-//                 else
-//                 {
-//                     return "Unknown";
-//                 }
-//             }
-//             catch (Exception)
-//             {
-//                 return "Unknown";
-//             }
-//         }
-// public static string FetchMenuItemsWithFeedback(MySqlConnection connection)
-// {
-//     try
-//     {
-//         if (connection.State == ConnectionState.Closed)
-//         {
-//             connection.Open();
-//         }
-
-//         // Fetch menu items
-//         string menuQuery = "SELECT item_id, name, price, available FROM MenuItem";
-//         MySqlCommand menuCmd = new MySqlCommand(menuQuery, connection);
-
-//         var menuItems = new Dictionary<int, (string Name, decimal Price, int Available)>();
-
-//         using (var reader = menuCmd.ExecuteReader())
-//         {
-//             while (reader.Read())
-//             {
-//                 int itemId = reader.GetInt32("item_id");
-//                 string name = reader.GetString("name");
-//                 decimal price = reader.GetDecimal("price");
-//                 int available = reader.GetInt32("available");
-
-//                 menuItems[itemId] = (name, price, available);
-//             }
-//         }
-//    // Fetch feedback details
-//         string feedbackQuery = "SELECT f.item_name, fd.rating, fd.comments, fd.created_at FROM Feedback f " +
-//                                "JOIN FeedbackDetails fd ON f.feedback_id = fd.feedback_id";
-//         MySqlCommand feedbackCmd = new MySqlCommand(feedbackQuery, connection);
-
-//         var feedbackDict = new Dictionary<string, List<(double Rating, string Comment, DateTime CreatedAt)>>();
-
-//         using (var reader = feedbackCmd.ExecuteReader())
-//         {
-//             while (reader.Read())
-//             {
-//                 string itemName = reader.GetString("item_name").Trim();
-//                 double rating = reader.GetDouble("rating");
-//                 string comment = reader.GetString("comments");
-//                 DateTime createdAt = reader.GetDateTime("created_at");
-
-//                 if (!feedbackDict.ContainsKey(itemName))
-//                 {
-//                     feedbackDict[itemName] = new List<(double Rating, string Comment, DateTime CreatedAt)>();
-//                 }
-
-//                 feedbackDict[itemName].Add((rating, comment, createdAt));
-//             }
-//         }
-//     StringBuilder response = new StringBuilder();
-
-//         foreach (var item in menuItems)
-//         {
-//             int itemId = item.Key;
-//             string itemName = item.Value.Name;
-//             decimal price = item.Value.Price;
-//             int available = item.Value.Available;
-
-//             response.AppendLine($"Item ID: {itemId}, Name: {itemName}, Price: {price:F2}, Available: {available}");
-
-//             if (feedbackDict.ContainsKey(itemName))
-//             {
-//                 var feedbackEntries = feedbackDict[itemName];
-
-//                 if (feedbackEntries.Count > 0)
-//                 {
-//                     var (averageRating, overallSentiment, recommendation) = AnalyzeSentimentsAndRatings(feedbackEntries);
-
-//                     response.AppendLine($"Rating: {averageRating:F1}, Overall Sentiment: {overallSentiment}");
-
-//                 }
-//             }
-//             else
-//             {
-//                 response.AppendLine($"  Average Rating: N/A, Overall Sentiment: N/A");
-//             }
-//         }
-
-//         return response.ToString();
-//     }
-//     catch (Exception ex)
-//     {
-//         return $"Error fetching menu items: {ex.Message}";
-//     }
-//     finally
-//     {
-//         if (connection.State == ConnectionState.Open)
-//         {
-//             connection.Close();
-//         }
-//     }
-// }
-// private static (double AverageRating, string OverallSentiment, string Recommendation) AnalyzeSentimentsAndRatings(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
-// {
-//     // Call CalculateOverallSentimentsAndRatings to get overall metrics
-//     var overallMetrics = CalculateOverallSentimentsAndRatings(entries);
-
-//     // Return the overall metrics
-//     return overallMetrics;
-// }
-
-// public static (double AverageRating, string OverallSentiment, string Recommendation) CalculateOverallSentimentsAndRatings(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
-// {
-//     // Define sentiment features for analysis
-//     Dictionary<string, List<string>> sentimentFeatures = new Dictionary<string, List<string>>
-//     {
-//         { "Positive", new List<string> { "delicious", "amazing", "great", "fantastic", "excellent", "good", "tasty", "wonderful", "superb", "awesome", "very good" } },
-//         { "Negative", new List<string> { "bad", "terrible", "disappointing", "awful", "poor", "tasteless", "horrible", "gross", "unpleasant", "mediocre", "not good", "bad taste" } }
-//     };
-
-//     int positiveCount = 0;
-//     int negativeCount = 0;
-//     int neutralCount = 0;
-
-//     double totalRating = 0;
-
-//     foreach (var entry in entries)
-//     {
-//         string comment = entry.Comment;
-//         int score = 0;
-
-//         // Calculate sentiment score
-//         foreach (var kvp in sentimentFeatures)
-//         {
-//             foreach (var feature in kvp.Value)
-//             {
-//                 if (comment.Contains(feature, StringComparison.OrdinalIgnoreCase))
-//                 {
-//                     score += kvp.Key == "Positive" ? 1 : -1;
-//                 }
-//             }
-//         }
-
-//         // Count positive, negative, and neutral sentiments
-//         if (score > 0)
-//         {
-//             positiveCount++;
-//         }
-//         else if (score < 0)
-//         {
-//             negativeCount++;
-//         }
-//         else
-//         {
-//             neutralCount++;
-//         }
-
-//         // Accumulate ratings to calculate average
-//         totalRating += entry.Rating;
-//     }
-
-//     // Calculate average rating
-//     double averageRating = entries.Count > 0 ? totalRating / entries.Count : 0.0;
-
-//     // Determine overall sentiment
-//     string overallSentiment = "Neutral";
-//     if (positiveCount > negativeCount && positiveCount > neutralCount)
-//     {
-//         overallSentiment = "Positive";
-//     }
-//     else if (negativeCount > positiveCount && negativeCount > neutralCount)
-//     {
-//         overallSentiment = "Negative";
-//     }
-//     else if (positiveCount > 0 && negativeCount > 0)
-//     {
-//         overallSentiment = "Mixed";
-//     }
-
-//     // Determine recommendation based on average rating
-//     string recommendation = averageRating >= 4.0 ? "Highly recommended" :
-//                             averageRating >= 3.0 ? "Recommended" :
-//                             averageRating >= 2.0 ? "Average" :
-//                             "Not recommended";
-
-//     return (averageRating, overallSentiment, recommendation);
-// }
-
-//         static string AddMenuItem(MySqlConnection connection, string menuType, string itemName, decimal price, int available)
-//         {
-//             try
-//             {
-//                 // Get menu_id for the given menuType
-//                 int menuId = GetMenuId(connection, menuType);
-//                 if (menuId == -1)
-//                     return "Invalid menu type.";
-
-//                 string query = $"INSERT INTO MenuItem (menu_id, name, price, available) VALUES (@menuId, @itemName, @price, @available)";
-//                 MySqlCommand cmd = new MySqlCommand(query, connection);
-//                 cmd.Parameters.AddWithValue("@menuId", menuId);
-//                 cmd.Parameters.AddWithValue("@itemName", itemName);
-//                 cmd.Parameters.AddWithValue("@price", price);
-//                 cmd.Parameters.AddWithValue("@available", available);
-
-//                 int rowsAffected = cmd.ExecuteNonQuery();
-
-//                 if (rowsAffected > 0)
-//                     return "New item added successfully.";
-//                 else
-//                     return "Failed to add new item.";
-//             }
-//             catch (Exception ex)
-//             {
-//                 return "Error adding item: " + ex.Message;
-//             }
-//         }
-
-//         static int GetMenuId(MySqlConnection connection, string menuType)
-//         {
-//             try
-//             {
-//                 string query = $"SELECT menu_id FROM Menu WHERE menu_type = @menuType";
-//                 MySqlCommand cmd = new MySqlCommand(query, connection);
-//                 cmd.Parameters.AddWithValue("@menuType", menuType);
-
-//                 object result = cmd.ExecuteScalar();
-//                 if (result != null)
-//                     return Convert.ToInt32(result);
-//                 else
-//                     return -1; // Invalid menu type
-//             }
-//             catch (Exception)
-//             {
-//                 return -1;
-//             }
-//         }
-//     static string UpdateMenuItem(MySqlConnection connection, int itemId, string itemName, decimal price, int available)
-//         {
-//             try
-//             {
-//                 string query = "UPDATE MenuItem SET name = @itemName, price = @price, available = @available WHERE item_id = @itemId";
-//                 MySqlCommand cmd = new MySqlCommand(query, connection);
-//                 cmd.Parameters.AddWithValue("@itemName", itemName);
-//                 cmd.Parameters.AddWithValue("@price", price);
-//                 cmd.Parameters.AddWithValue("@available", available);
-//                 cmd.Parameters.AddWithValue("@itemId", itemId);
-
-//                 int rowsAffected = cmd.ExecuteNonQuery();
-
-//                 if (rowsAffected > 0)
-//                     return "Item updated successfully.";
-//                 else
-//                     return "Failed to update item.";
-//             }
-//             catch (Exception ex)
-//             {
-//                 return "Error updating item: " + ex.Message;
-//             }
-//         }
-
-//         static string DeleteMenuItem(MySqlConnection connection, int itemId)
-//         {
-//             try
-//             {
-//                 string query = "DELETE FROM MenuItem WHERE item_id = @itemId";
-//                 MySqlCommand cmd = new MySqlCommand(query, connection);
-//                 cmd.Parameters.AddWithValue("@itemId", itemId);
-
-//                 int rowsAffected = cmd.ExecuteNonQuery();
-
-//                 if (rowsAffected > 0)
-//                       return "Item deleted successfully.";
-//                 else
-//                     return "Failed to delete item.";
-//             }
-//             catch (Exception ex)
-//             {
-//                 return "Error deleting item: " + ex.Message;
-//             }
-//         }
-
-//  static string RolloutFoodItemsForNextDay(MySqlConnection connection, string[] itemIds)
-// {
-//     try
-//     {
-//         FetchMenuItemsWithFeedback(connection);
-//         int successfulCount = 0;
-//         DateTime today = DateTime.Today; // Get today's date without the time component
-
-//         using (MySqlTransaction transaction = connection.BeginTransaction())
-//         {
-//             foreach (var itemIdStr in itemIds)
-//             {
-//                 if (int.TryParse(itemIdStr, out int itemId))
-//                 {
-//                     // Check if the item has already been rolled out today
-//                     string checkQuery = "SELECT COUNT(*) FROM RolloutItems WHERE item_id = @itemId AND date_rolled_out = @today";
-//                     MySqlCommand checkCmd = new MySqlCommand(checkQuery, connection, transaction);
-//                     checkCmd.Parameters.AddWithValue("@itemId", itemId);
-//                     checkCmd.Parameters.AddWithValue("@today", today);
-
-//                     long count = (long)checkCmd.ExecuteScalar();
-
-//                     if (count == 0)
+//                     if (int.TryParse(parts[parts.Length - 2], out int available) && (available == 0 || available == 1))
 //                     {
-//                         // Get item details
-//                         string getItemQuery = "SELECT * FROM MenuItem WHERE item_id = @itemId";
-//                         MySqlCommand getItemCmd = new MySqlCommand(getItemQuery, connection, transaction);
-//                         getItemCmd.Parameters.AddWithValue("@itemId", itemId);
+//                         var addMenuOperation = new MenuOperations();
+//                         return addMenuOperation.AddMenuItemToMenu(connection, menuType, itemName, price, available, foodType);
+//                     }
+//                     else
+//                     {
+//                         return "Invalid availability format.";
+//                     }
+//                 }
+//                 else
+//                 {
+//                     return "Invalid price format.";
+//                 }
+//             }
+//             else
+//             {
+//                 return "Invalid command format.";
+//             }
+//         }
 
-//                         // Use a `using` block to ensure the reader is closed after use
-//                         using (MySqlDataReader reader = getItemCmd.ExecuteReader())
+//         static string HandleUpdateMenuItem(string[] parts, MySqlConnection connection)
+//         {
+//             if (parts.Length >= 4)
+//             {
+//                 string itemName = string.Join(" ", parts.Skip(1).Take(parts.Length - 3)).Trim('"');
+
+//                 if (decimal.TryParse(parts[parts.Length - 2], out decimal price))
+//                 {
+//                     if (int.TryParse(parts[parts.Length - 1], out int available) && (available == 0 || available == 1))
+//                     {
+//                         var updateMenuOperation = new MenuOperations();
+//                         return updateMenuOperation.UpdateMenuItemInMenu(connection, itemName, price, available);
+//                     }
+//                     else
+//                     {
+//                         return "Invalid availability format.";
+//                     }
+//                 }
+//                 else
+//                 {
+//                     return "Invalid price format.";
+//                 }
+//             }
+//             else
+//             {
+//                 return "Invalid command format.";
+//             }
+//         }
+
+//         static string HandleDeleteMenuItem(string[] parts, MySqlConnection connection)
+//         {
+//             if (parts.Length == 2 && int.TryParse(parts[1], out int deleteItemId))
+//             {
+//                 var deleteMenuOperation = new MenuOperations();
+//                 return deleteMenuOperation.DeleteMenuItemFromMenu(connection, deleteItemId);
+//             }
+//             else
+//             {
+//                 return "Invalid delete command format.";
+//             }
+//         }
+
+//         static string HandleRolloutCommand(string[] parts, MySqlConnection connection)
+//         {
+//             if (parts.Length >= 2)
+//     {
+//         string[] itemIdsStr = new string[parts.Length - 1];
+//         Array.Copy(parts, 1, itemIdsStr, 0, parts.Length - 1);
+
+//         // Assuming you have an instance of `MySqlConnection` named `connection`
+//         // And the necessary dependencies for `RolloutManager`
+//         var rolloutRepository = new RolloutRepository(connection); // Example, replace with actual instantiation
+//         var notificationService = new NotificationService(connection); // Example, replace with actual instantiation
+
+//         // Create an instance of `RolloutManager` with the necessary dependencies
+//         var rolloutManager = new RolloutManager(rolloutRepository, notificationService);
+
+//         // Use the instance to call the method
+//         return rolloutManager.RolloutFoodItemsForNextDay(connection, itemIdsStr);
+//     }
+//     else
+//     {
+//         return "Invalid rollout command format.";
+//     }
+//         }
+
+//         static string HandleFetchFeedback(MySqlConnection connection)
+//         {
+//               FeedbackService feedbackServiceFetch = new FeedbackService();
+//              return feedbackServiceFetch.FetchFeedbackItems(connection);
+//         }
+
+//         static string HandleFetchEmployeeSelections(MySqlConnection connection)
+//         {
+//             var employeeSelectionService = new EmployeeSelectionService(connection);
+//             return employeeSelectionService.FetchEmployeeSelections();
+//         }
+
+//         static string HandleFetchRolloutItems(string[] parts, MySqlConnection connection)
+//         {
+//             if (parts.Length >= 2)
+//             {
+//                 string username = parts[1];
+//                 var rolloutOperations = new RolloutOperations();
+//                 return rolloutOperations.FetchRolloutItemsWithFeedback(connection, username);
+//             }
+//             else
+//             {
+//                 return "Invalid command format for fetching rollout items.";
+//             }
+//         }
+
+//         static string HandleSelectItem(string[] parts, MySqlConnection connection)
+//         {
+//             if (parts.Length > 1)
+//             {
+//                 try
+//                 {
+//                     var profileRepository = new EmployeeProfileRepository();
+//                     string username = parts[1];
+//                     int[] rolloutIds = parts.Skip(2).Select(int.Parse).ToArray();
+
+//                     int userId = profileRepository.GetUserIdByUsername(connection, username);
+//                     if (userId != -1)
+//                     {
+//                         var selectionService = new SelectionService();
+//                         return selectionService.SelectFoodItemsForNextDay(connection, userId, rolloutIds);
+//                     }
+//                     else
+//                     {
+//                         return $"User '{username}' not found.";
+//                     }
+//                 }
+//                 catch (FormatException)
+//                 {
+//                     return "Invalid selection command format. Please provide valid rollout IDs.";
+//                 }
+//                 catch (Exception ex)
+//                 {
+//                     return $"Error selecting items: {ex.Message}";
+//                 }
+//             }
+//             else
+//             {
+//                 return "No rollout items selected.";
+//             }
+//         }
+
+//         static string HandleSendFeedbackForm(string[] parts, MySqlConnection connection)
+//         {
+//                if (parts.Length >= 2)
 //                         {
-//                             if (reader.Read())
-//                             {
-//                                 string itemName = reader.GetString("name");
-//                                 decimal price = reader.GetDecimal("price");
-//                                 int available = reader.GetInt32("available");
+//                             // Create instance of FeedbackService with a unique variable name for this case
+//                             FeedbackService feedbackServiceForm = new FeedbackService();
+//                             string foodItem = string.Join(" ", parts, 1, parts.Length - 1);
+//                             return feedbackServiceForm.SubmitFeedback(connection, foodItem);
+//                         }
+//                         else
+//                         {
+//                             return "Invalid format for sending feedback form.";
+//                         }
+//         }
 
-//                                 // Close the reader before the next command
-//                                 reader.Close();
+//         static string HandleSubmitFeedback(string[] parts, MySqlConnection connection)
+//         {
+//               string commandArgs = string.Join(" ", parts.Skip(1));
+//                         Regex feedbackRegex = new Regex("\"(.*?)\"\\s(\\d)\\s\"(.*?)\"");
 
-//                                 // Insert into RolloutItems table
-//                                 string insertQuery = "INSERT INTO RolloutItems (item_id, item_name, price, available, selected_for_next_day, date_rolled_out) " +
-//                                                      "VALUES (@itemId, @itemName, @price, @available, true, @today)";
-//                                 MySqlCommand insertCmd = new MySqlCommand(insertQuery, connection, transaction);
-//                                 insertCmd.Parameters.AddWithValue("@itemId", itemId);
-//                                 insertCmd.Parameters.AddWithValue("@itemName", itemName);
-//                                 insertCmd.Parameters.AddWithValue("@price", price);
-//                                 insertCmd.Parameters.AddWithValue("@available", available);
-//                                 insertCmd.Parameters.AddWithValue("@today", today);
+//                         Match match = feedbackRegex.Match(commandArgs);
+//                         if (match.Success)
+//                         {
+//                             // Create instance of FeedbackService with a unique variable name for this case
+//                             FeedbackService feedbackServiceSubmit = new FeedbackService();
+//                             string itemName = match.Groups[1].Value; // Group 1: itemName
+//                             int rating = int.Parse(match.Groups[2].Value); // Group 2: rating
+//                             string comments = match.Groups[3].Value; // Group 3: comments
 
-//                                 int rowsAffected = insertCmd.ExecuteNonQuery();
+//                             Console.WriteLine($"Parsed Feedback - Item: {itemName}, Rating: {rating}, Comments: {comments}");
+//                             return feedbackServiceSubmit.FillFeedbackForm(connection, itemName, rating, comments);
+//                         }
+//                         else
+//                         {
+//                             return "Invalid feedback format. Please provide a valid format.";
+//                         }
+//         }
 
-//                                 if (rowsAffected > 0)
-//                                     successfulCount++;
-//                             }
-//                             else
-//                             {
-//                                 // Ensure to close the reader if no data is read
-//                                 reader.Close();
-//                             }
+//         static string HandleLogout(string[] parts, MySqlConnection connection)
+//         {
+//               if (parts.Length >= 2)
+//                     {
+//                         return LoginOperations.LogoutUser(connection, parts[1]);
+//                     }
+//                     else
+//                     {
+//                         return "Invalid logout command format.";
+//                     }
+//         }
+
+//         static string HandleFetchEmployeeNotification(MySqlConnection connection)
+//         {
+//              return NotificationService.GetEmployeeNotification((int)RoleEnum.Employee, connection);
+//         }
+
+//         static string HandleFetchChefNotification(MySqlConnection connection)
+//         {
+//            return NotificationService.GetChefNotification((int)RoleEnum.Chef, connection);
+//          }
+
+//         static string HandleFetchNotifications(MySqlConnection connection)
+//         {
+//             int userTypeId = 3;
+//                 return  DiscardMenu.FetchNotificationsForEmployees(userTypeId, connection);
+//         }
+
+//         static string HandleFetchDiscardMenuItems(MySqlConnection connection)
+//         {
+//               return DiscardMenu.FetchMenuItemsWithNegativeFeedback(connection);
+
+//         }
+
+//         static string HandleRemoveDiscardMenuItem(string[] parts, MySqlConnection connection)
+//         {
+//               if (parts.Length > 1)
+//                     {
+//                         string itemName = string.Join(" ", parts.Skip(1));
+//                         itemName = itemName.Trim();
+//                         DiscardMenu.RemoveMenuItem(connection, itemName);
+//                         return  $"Removed {itemName} from discard menu items.";
+//                     }
+//                     else
+//                     {
+//                         return "Invalid command format for removing discard menu item.";
+//                     }
+
+                   
+//         }
+
+//         static string HandleGetDetailedFeedback(string[] parts, MySqlConnection connection)
+//         {
+//               if (parts.Length > 1)
+//                     {
+//                         string itemName = parts[1];
+//                         return DiscardMenu.RollOutFoodForDetailsFeedback(connection, itemName);
+//                     }
+//                     else
+//                     {
+//                         return "Invalid command format for getting detailed feedback.";
+//                     }
+//         }
+
+//         static string HandleRollOutFeedback(string[] parts, MySqlConnection connection)
+//         {
+//              if (parts.Length > 1)
+//                     {
+//                         string itemName = string.Join(" ", parts.Skip(1)).Trim();
+//                         return DiscardMenu.RollOutFoodForDetailsFeedback(connection, itemName);
+//                     }
+//                     else
+//                     {
+//                         return "Invalid command format for rolling out food for feedback.";
+//                  }
+//         }
+
+//         static string HandleSubmitDetailedFeedback(string[] parts, MySqlConnection connection)
+//         {
+//             if (parts.Length >= 5)
+//                     {
+//                         // Use a different variable name instead of 'command' to avoid conflict
+//                         string feedbackCommand = string.Join(" ", parts.Skip(1));
+//                         var feedbackParts = ParseFeedbackCommand(feedbackCommand);
+
+//                         if (feedbackParts.Length == 4) // itemName, question1Response, question2Response, question3Response
+//                         {
+//                             string itemName = feedbackParts[0];
+//                             string question1Response = feedbackParts[1];
+//                             string question2Response = feedbackParts[2];
+//                             string question3Response = feedbackParts[3];
+
+//                             return DiscardMenu.SubmitDetailedFeedback(connection, itemName, question1Response, question2Response, question3Response);
+//                         }
+//                         else
+//                         {
+//                             return "Invalid command format for submitting detailed feedback.";
 //                         }
 //                     }
 //                     else
 //                     {
-//                         Console.WriteLine($"Item with ID {itemId} has already been rolled out today.");
+//                         return "Invalid command format for submitting detailed feedback.";
 //                     }
-//                 }
-//             }
-
-//             // Commit the transaction if no exceptions
-//             transaction.Commit();
 //         }
 
-//         if (successfulCount == itemIds.Length)
-//             return "Items rolled out for next day successfully.";
-//         else if (successfulCount > 0)
-//             return "Some items were already rolled out today. Only new items were added.";
-//         else
-//             return "All selected items were already rolled out today.";
-//     }
-//     catch (Exception ex)
-//     {
-//         return "Error rolling out item: " + ex.Message;
-//     }
-// }
-
-// static string SubmitFeedback(MySqlConnection connection, string itemName)
-// {
-//     try
-//     {
-//         // Trim the itemName to remove leading and trailing spaces
-//         itemName = itemName.Trim();
-
-//         if (string.IsNullOrEmpty(itemName))
+//         static string HandleUpdateProfile(string[] parts, MySqlConnection connection)
 //         {
-//             return "Item name cannot be empty.";
-//         }
-
-//         string query = "INSERT INTO Feedback (item_name) VALUES (@itemName)";
-//         MySqlCommand cmd = new MySqlCommand(query, connection);
-//         cmd.Parameters.AddWithValue("@itemName", itemName);
-
-//         int rowsAffected = cmd.ExecuteNonQuery();
-
-//         return rowsAffected > 0 ? "Feedback submitted successfully." : "Failed to submit feedback.";
-//     }
-//     catch (Exception ex)
+//                 if (parts.Length >= 6) // Ensure there are enough parts
 //     {
-//         return "Error submitting feedback: " + ex.Message;
-//     }
-// }
-//    static string FetchRolloutItems(MySqlConnection connection)
+//         string username = parts[1]; // This is the username
+
+//         // Reconstruct the remaining parts into a single string for easier handling
+//         string remainingInput = string.Join(" ", parts.Skip(2));
+
+//         // Use a regex to split the string respecting quoted sections
+//         string[] preferencesParts = Regex.Matches(remainingInput, @"[\""].+?[\""]|[^ ]+")
+//                                           .Cast<Match>()
+//                                           .Select(m => m.Value.Trim('"'))
+//                                           .ToArray();
+
+//         if (preferencesParts.Length >= 4)
 //         {
 //             try
 //             {
-//                 StringBuilder sb = new StringBuilder();
-//                 string query = "SELECT * FROM RolloutItems WHERE selected_for_next_day = true";
-//                 MySqlCommand cmd = new MySqlCommand(query, connection);
-//                 MySqlDataReader reader = cmd.ExecuteReader();
+//                 // Assign values to variables correctly
+//                 string preference = preferencesParts[0];
+//                 string spiceLevel = preferencesParts[1];
+//                 string cuisinePreference = preferencesParts[2];
+//                 bool sweetTooth = preferencesParts[3].Equals("true", StringComparison.OrdinalIgnoreCase);
 
-//                 while (reader.Read())
+//                 // Create instances of the required classes
+//                 var profileRepository = new EmployeeProfileRepository();
+//                 var profileOperations = new EmployeeProfileOperations();
+
+//                 // Fetch UserID based on the provided username
+//                 int userId = profileRepository.GetUserIdByUsername(connection, username);
+//                 Console.WriteLine($"Username: {username}, UserID: {userId}");
+
+//                 if (userId != -1)
 //                 {
-//                     int rolloutId = reader.GetInt32("rollout_id");
-//                     string itemName = reader.GetString("item_name");
-//                     decimal price = reader.GetDecimal("price");
-
-//                     sb.AppendLine($"Rollout ID: {rolloutId}, Item Name: {itemName}, Price: {price}");
-//                 }
-
-//                 reader.Close();
-//                 return sb.ToString();
-//             }
-//             catch (Exception ex)
-//             {
-//                 return "Error fetching rollout items: " + ex.Message;
-//             }
-//         }
-
-// static string FetchEmployeeSelections(MySqlConnection connection)
-// {
-//     try
-//     {
-//         StringBuilder sb = new StringBuilder();
-//         string query = "SELECT es.*, ri.item_name FROM EmployeeSelections es JOIN RolloutItems ri ON es.rollout_id = ri.rollout_id";
-//         MySqlCommand cmd = new MySqlCommand(query, connection);
-//         MySqlDataReader reader = cmd.ExecuteReader();
-
-//         while (reader.Read())
-//         {
-//             int userId = reader.GetInt32("user_id");
-//             int rolloutId = reader.GetInt32("rollout_id");
-//             string itemName = reader.GetString("item_name");
-
-//             sb.AppendLine($"Employee ID: {userId}, Rollout ID: {rolloutId}, Item Name: {itemName}");
-//         }
-
-//         reader.Close();
-
-//         return sb.ToString();
-//     }
-//     catch (Exception ex)
-//     {
-//         return "Error fetching employee selections: " + ex.Message;
-//     }
-// }
-// static string SelectFoodItemForNextDay(MySqlConnection connection, int rolloutId)
-// {
-//     try
-//     {
-//         // Ensure the connection is open
-//         if (connection.State == ConnectionState.Closed)
-//         {
-//             connection.Open();
-//         }
-
-//         // Example employee user ID; replace with actual logged-in user's ID
-//         int userId = 3;
-
-//         // Check if the rollout item exists and is available
-//         string selectQuery = "SELECT * FROM RolloutItems WHERE rollout_id = @rolloutId AND available = 1";
-//         MySqlCommand selectCmd = new MySqlCommand(selectQuery, connection);
-//         selectCmd.Parameters.AddWithValue("@rolloutId", rolloutId);
-
-//         using (MySqlDataReader reader = selectCmd.ExecuteReader())
-//         {
-//             if (reader.Read())
-//             {
-//                 reader.Close(); // Close the reader before proceeding to the next operation
-
-//                 // Insert the employee's selection into the EmployeeSelections table
-//                 string insertQuery = "INSERT INTO EmployeeSelections (user_id, rollout_id, selected) VALUES (@userId, @rolloutId, true)";
-//                 MySqlCommand insertCmd = new MySqlCommand(insertQuery, connection);
-//                 insertCmd.Parameters.AddWithValue("@userId", userId);
-//                 insertCmd.Parameters.AddWithValue("@rolloutId", rolloutId);
-
-//                 int rowsAffected = insertCmd.ExecuteNonQuery();
-
-//                 if (rowsAffected > 0)
-//                 {
-//                     Console.WriteLine($"Employee {userId} selected rollout item {rolloutId}.");
-//                     return "Your selection has been recorded.";
+//                     // Call the instance method using the created instance
+//                     return profileOperations.UpdateOrCreateProfile(connection, userId, preference, spiceLevel, cuisinePreference, sweetTooth);
 //                 }
 //                 else
 //                 {
-//                     return "Failed to record your selection.";
+//                     return "Error: Unable to retrieve UserID.";
 //                 }
 //             }
-//             else
+//             catch (Exception ex)
 //             {
-//                 return "Rollout item not found or not available.";
+//                 return $"Error processing the UPDATE_PROFILE command: {ex.Message}";
 //             }
 //         }
-//     }
-//     catch (Exception ex)
-//     {
-//         return "Error selecting item: " + ex.Message;
-//     }
-// }
-// public static string FetchRolloutItemsWithFeedback(MySqlConnection connection)
-// {
-//     try
-//     {
-
-//         // Fetch rollout items
-//         string rolloutQuery = "SELECT rollout_id, item_name, price, available FROM RolloutItems WHERE available = 1";
-//         MySqlCommand rolloutCmd = new MySqlCommand(rolloutQuery, connection);
-
-//         var rolloutItems = new Dictionary<int, (string ItemName, decimal Price, int Available)>();
-
-//         using (var reader = rolloutCmd.ExecuteReader())
+//         else
 //         {
-//             while (reader.Read())
-//             {
-//                 int rolloutId = reader.GetInt32("rollout_id");
-//                 string itemName = reader.IsDBNull(reader.GetOrdinal("item_name")) ? "Unnamed Item" : reader.GetString("item_name");
-//                 decimal price = reader.IsDBNull(reader.GetOrdinal("price")) ? 0.0m : reader.GetDecimal("price");
-//                 int available = reader.IsDBNull(reader.GetOrdinal("available")) ? 0 : reader.GetInt32("available");
-
-//                 rolloutItems[rolloutId] = (itemName, price, available);
-//             }
+//             return "Invalid command format for updating employee profile.";
 //         }
-//         // Fetch feedback details
-//         string feedbackQuery = @"
-//             SELECT f.item_name, AVG(fd.rating) AS averageRating, COUNT(fd.feedback_id) AS totalFeedback,
-//                    SUM(CASE WHEN fd.rating >= 4 THEN 1 ELSE 0 END) AS positiveCount,
-//                    SUM(CASE WHEN fd.rating < 2 THEN 1 ELSE 0 END) AS negativeCount
-//             FROM Feedback f
-//             JOIN FeedbackDetails fd ON f.feedback_id = fd.feedback_id
-//             WHERE f.item_name IN (SELECT item_name FROM RolloutItems WHERE available = 1)
-//             GROUP BY f.item_name";
-
-//         MySqlCommand feedbackCmd = new MySqlCommand(feedbackQuery, connection);
-
-//         var feedbackDict = new Dictionary<string, (double AverageRating, string OverallSentiment)>();
-
-//         using (var reader = feedbackCmd.ExecuteReader())
-//         {
-//             while (reader.Read())
-//             {
-//                 string itemName = reader.GetString("item_name").Trim();
-//                 double averageRating = reader.IsDBNull(reader.GetOrdinal("averageRating")) ? 0.0 : reader.GetDouble("averageRating");
-//                 int positiveCount = reader.IsDBNull(reader.GetOrdinal("positiveCount")) ? 0 : reader.GetInt32("positiveCount");
-//                 int negativeCount = reader.IsDBNull(reader.GetOrdinal("negativeCount")) ? 0 : reader.GetInt32("negativeCount");
-//                 int totalFeedback = reader.IsDBNull(reader.GetOrdinal("totalFeedback")) ? 0 : reader.GetInt32("totalFeedback");
-
-//                 string overallSentiment = CalculateOverallSentiment(positiveCount, negativeCount, totalFeedback);
-
-//                 feedbackDict[itemName] = (averageRating, overallSentiment);
-//             }
-//         }
-//         // Prepare the response with rollout items and their feedback
-//         StringBuilder response = new StringBuilder();
-
-//         foreach (var item in rolloutItems)
-//         {
-//             int rolloutId = item.Key;
-//             string itemName = item.Value.ItemName;
-//             decimal price = item.Value.Price;
-//             int available = item.Value.Available;
-
-//             response.AppendLine($"Rollout ID: {rolloutId}, Item Name: {itemName}, Price: {price:F2}, Available: {available}");
-
-//             if (feedbackDict.ContainsKey(itemName))
-//             {
-//                 var (averageRating, overallSentiment) = feedbackDict[itemName];
-//                 response.AppendLine($"  Average Rating: {averageRating:F1}, Overall Sentiment: {overallSentiment}");
-//             }
-//             else
-//             {
-//                 response.AppendLine($"  Average Rating: N/A, Overall Sentiment: N/A");
-//             }
-//         }
-
-//         return response.ToString();
-//     }
-//     catch (Exception ex)
-//     {
-//         return $"Error fetching rollout items: {ex.Message}";
-//     }
-//     finally
-//     {
-//         Console.WriteLine("Closing connection...");
-//     }
-// }
-// private static string CalculateOverallSentiment(int positiveCount, int negativeCount, int totalFeedback)
-// {
-//     if (totalFeedback == 0) return "N/A";
-
-//     if (positiveCount > negativeCount)
-//     {
-//         return "Positive";
-//     }
-//     else if (negativeCount > positiveCount)
-//     {
-//         return "Negative";
 //     }
 //     else
 //     {
-//         return "Neutral";
+//         return "Invalid command format for updating employee profile.";
+//     }
+
+//         }
+
+//         static string HandleFetchDetailedFeedbackQuestions(string[] parts, MySqlConnection connection)
+//         {
+//              if (parts.Length > 1)
+//                     {
+//                         string itemName = string.Join(" ", parts.Skip(1)).Trim();
+//                         return DiscardMenu.GetDetailedFeedbackQuestions(itemName);
+//                     }
+//                     else
+//                     {
+//                         return "Invalid command format for fetching detailed feedback questions.";
+//                     }
+//         }
+//          private static string[] ParseFeedbackCommand(string commandText)
+//         {
+//             var matches = System.Text.RegularExpressions.Regex.Matches(commandText, @"(?<=^| )\""(\\.|[^\""])*\""|[^ ]+");
+//             return matches.Select(m => m.Value.Trim('"')).ToArray();
+//         }
 //     }
 // }
-//            }
-// }
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
-using CafeteriaServer.Models;
-using CafeteriaServer.Operations;
-using System.Collections.Generic;
-using CafeteriaServer.Recommendation;
+
 namespace CafeteriaServer
 {
-    class Program
+     class Program
     {
         static void Main(string[] args)
         {
-
             string connectionString = "Server=localhost;Database=CafeteriaDB;Uid=root;Pwd=Admin@123;";
             MySqlConnection connection = new MySqlConnection(connectionString);
 
@@ -981,8 +1077,6 @@ namespace CafeteriaServer
                 TcpListener server = new TcpListener(IPAddress.Any, 13000);
                 connection.Open();
                 Console.WriteLine("Connected to MySQL database.");
-
-                
 
                 server.Start();
                 Console.WriteLine("Server started. Listening for clients...");
@@ -998,202 +1092,11 @@ namespace CafeteriaServer
                     string data = Encoding.UTF8.GetString(buffer, 0, bytesRead).Trim();
                     Console.WriteLine("Received from client: {0}", data);
 
-                    string[] parts = data.Split(' ');
-                    string command = parts[0];
-
-                    string response = "";
-                    switch (command)
-                    {
-                        case "LOGIN":
-                            if (parts.Length >= 3)
-                            {
-                                string username = parts[1];
-                                string password = parts[2];
-                                response = LoginOperations.LoginUser(connection, username, password);
-                            }
-                            else
-                            {
-                                response = "Invalid login command format.";
-                            }
-                            break;
-                        case "FETCH_WITH_RECOMMENDATION":
-                            response = MenuOperations.FetchMenuItemsWithFeedback(connection);
-                            break;
-                        case "MENU_FETCH":
-                            response = RolloutOperations.FetchMenu(connection);
-                            break;
-                        case "FETCH_ROLLOUT_Feedback":
-                            response = RolloutOperations.FetchRolloutItemsWithFeedback(connection);
-                            break;
-                        case "ADD":
-                            if (parts.Length >= 5)
-                            {
-                                string menuType = parts[1];
-                                string itemName = string.Join(" ", parts.Skip(2).Take(parts.Length - 4)).Trim('"').Trim();
-                                if (decimal.TryParse(parts[parts.Length - 2], out decimal price))
-                                {
-
-                                    if (int.TryParse(parts[parts.Length - 1], out int available) && (available == 0 || available == 1))
-                                    {
-                                        response = MenuOperations.AddMenuItem(connection, menuType, itemName, price, available);
-                                    }
-                                    else
-                                    {
-                                        response = "Invalid availability format.";
-                                    }
-                                }
-                                else
-                                {
-                                    response = "Invalid price format.";
-                                }
-                            }
-                            else
-                            {
-                                response = "Invalid command format.";
-                            }
-                            break;
-                        case "UPDATE":
-                            if (parts.Length >= 4)
-                            {
-                                string itemName = parts[1];
-                                if (decimal.TryParse(parts[2], out decimal price))
-                                {
-                                    int available;
-                                    if (int.TryParse(parts[3], out available))
-                                    {
-                                        response = MenuOperations.UpdateMenuItem(connection, itemName, price, available);
-                                    }
-                                    else
-                                    {
-                                        response = "Invalid availability format.";
-                                    }
-                                }
-                                else
-                                {
-                                    response = "Invalid price format.";
-                                }
-                            }
-                            else
-                            {
-                                response = "Invalid command format.";
-                            }
-                            break;
-                        case "DELETE":
-                            if (parts.Length == 2 && int.TryParse(parts[1], out int deleteItemId))
-                            {
-                                response = MenuOperations.DeleteMenuItem(connection, deleteItemId);
-                            }
-                            else
-                            {
-                                response = "Invalid delete command format.";
-                            }
-                            break;
-                        case "ROLLOUT":
-                            if (parts.Length >= 2)
-                            {
-                                string[] itemIdsStr = new string[parts.Length - 1];
-                                Array.Copy(parts, 1, itemIdsStr, 0, parts.Length - 1);
-                                response = ChefOperation.RolloutFoodItemsForNextDay(connection, itemIdsStr);
-                            }
-                            else
-                            {
-                                response = "Invalid rollout command format.";
-                            }
-                            break;
-                        case "FETCH_FEEDBACK":
-                            response = FeedbackOperations.FetchFeedbackItems(connection);
-                            break;
-                        case "FETCH_EMPLOYEE_SELECTIONS":
-                            response = EmployeeSelectionOperations.FetchEmployeeSelections(connection);
-                            break;
-                        case "FETCH_ROLLOUT":
-                            response = RolloutOperations.FetchRolloutItemsWithFeedback(connection);
-                            break;
-                        // case "SELECT_ITEM":
-                        //     if (parts.Length == 2 && int.TryParse(parts[1], out int selectedRolloutId))
-                        //     {
-                        //         response = MenuOperations.SelectFoodItemForNextDay(connection, selectedRolloutId);
-                        //     }
-                        //     else
-                        //     {
-                        //         response = "Invalid selection command format.";
-                        //     }
-                        //     break;
-                        case "SELECT_ITEM":
-                            if (parts.Length > 1)
-                            {
-                                try
-                                {
-                                    int[] rolloutIds = parts.Skip(1).Select(int.Parse).ToArray();
-
-                                    response = MenuOperations.SelectFoodItemForNextDay(connection, rolloutIds);
-                                }
-                                catch (FormatException)
-                                {
-                                    response = "Invalid selection command format. Please provide valid rollout IDs.";
-                                }
-                            }
-                            else
-                            {
-                                response = "No rollout IDs provided.";
-                            }
-                            break;
-
-                        case "SEND_FEEDBACK_FORM":
-                            if (parts.Length >= 2)
-                            {
-                                string foodItem = string.Join(" ", parts, 1, parts.Length - 1);
-                                response = FeedbackOperations.SubmitFeedback(connection, foodItem);
-                            }
-                            else
-                            {
-                                response = "Invalid format for sending feedback form.";
-                            }
-                            break;
-                        case "SUBMIT_FEEDBACK":
-                            string commandArgs = string.Join(" ", parts.Skip(1));
-                            Regex feedbackRegex = new Regex("\"(.*?)\"\\s(\\d)\\s\"(.*?)\"");
-
-                            Match match = feedbackRegex.Match(commandArgs);
-                            if (match.Success)
-                            {
-                                string itemName = match.Groups[1].Value; // Group 1: itemName
-                                int rating = int.Parse(match.Groups[2].Value); // Group 2: rating
-                                string comments = match.Groups[3].Value; // Group 3: comments
-
-
-                                Console.WriteLine($"Parsed Feedback - Item: {itemName}, Rating: {rating}, Comments: {comments}");
-                                response = FeedbackOperations.FillFeedbackForm(connection, itemName, rating, comments);
-                            }
-                            else
-                            {
-                                response = "Invalid feedback format. Please provide a valid format.";
-                            }
-                            break;
-                        case "LOGOUT":
-                            if (parts.Length >= 2)
-                            {
-                                string username = parts[1];
-                                response = LoginOperations.LogoutUser(connection, username);
-                            }
-                            else
-                            {
-                                response = "Invalid logout command format.";
-                            }
-                            break;
-                        case "FETCH_NOTIFICATION_FOR_EMPLOYEE":
-                            response = EmployeeSelectionOperations.GetEmployeeNotification((int)RoleEnum.Employee, connection);
-                            break;
-                        case "FETCH_NOTIFICATION_FOR_CHEF":
-                            response = ChefOperation.GetChefNotification((int)RoleEnum.Chef, connection);
-                            break;
-                        default:
-                            response = "Invalid command.";
-                            break;
-                    }
+                    string response = CommandHandler.ProcessCommand(data, connection);
 
                     SendResponseToClient(stream, response);
                     Console.WriteLine("Sent to client: {0}", response);
+
                     stream.Close();
                     client.Close();
                 }
@@ -1204,7 +1107,6 @@ namespace CafeteriaServer
             }
             finally
             {
-
                 if (connection != null && connection.State == System.Data.ConnectionState.Open)
                 {
                     connection.Close();
@@ -1212,6 +1114,7 @@ namespace CafeteriaServer
                 }
             }
         }
+
 
         static void SendResponseToClient(NetworkStream stream, string response)
         {

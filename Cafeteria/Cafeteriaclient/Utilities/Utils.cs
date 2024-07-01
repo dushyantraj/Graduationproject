@@ -14,34 +14,41 @@
 // }
 using System;
 using CafeteriaClient.Communication;
+
 namespace CafeteriaClient.Utilities
 {
-    class Utils
+    public static class Utils
     {
-        public static void Logout()
+        public static void Logout(string username)
         {
-            if (Program.currentUsername != null)
+            if (string.IsNullOrEmpty(username))
             {
-                string logoutCommand = $"LOGOUT {Program.currentUsername}";
-                string serverResponse = ServerCommunicator.SendCommandToServer(logoutCommand);
+                Console.WriteLine("No user is currently logged in.");
+                return;
+            }
 
-                if (serverResponse.StartsWith("LOGOUT_SUCCESS"))
-                {
-                    Console.WriteLine("Logout successful.");
-                }
-                else
-                {
-                    Console.WriteLine("Logout failed: " + serverResponse);
-                }
+            try
+            {
+                PerformLogout(username);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during logout for user {username}: {ex.Message}");
+            }
+        }
 
-                Program.currentUsername = null;
-                Program.currentRole = null;
+        private static void PerformLogout(string username)
+        {
+            string logoutCommand = $"LOGOUT {username}";
+            string serverResponse = ServerCommunicator.SendCommandToServer(logoutCommand);
 
-                Console.WriteLine("You have been logged out.");
+            if (serverResponse.StartsWith("LOGOUT_SUCCESS"))
+            {
+                Console.WriteLine("Logout successful.");
             }
             else
             {
-                Console.WriteLine("No user is currently logged in.");
+                Console.WriteLine("Logout failed: " + serverResponse);
             }
         }
     }

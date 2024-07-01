@@ -1,11 +1,12 @@
 namespace CafeteriaClient.Models
 {
     public class MenuItem
-    {
-        public int Id { get; set; }
-        public string MenuType { get; set; }
-        public string Name { get; set; }
-        public decimal Price { get; set; }
-        public bool IsAvailable { get; set; }
-    }
+{
+    public string MenuType { get; set; }
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+    public int Availability { get; set; }
+    public string FoodType { get; set; }  // New property for food type
+}
+
 }
