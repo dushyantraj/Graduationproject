@@ -6,6 +6,6 @@ namespace CafeteriaServer.Models.DTO
         public ItemDTO ItemDTO { get; set; }
         public double AverageRating { get; set; }
         public string OverallSentiment { get; set; }
-        public string Recommendation {  get; set; }
+        public string Recommendation { get; set; }
     }
 }

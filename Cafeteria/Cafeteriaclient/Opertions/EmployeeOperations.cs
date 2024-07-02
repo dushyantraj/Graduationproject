@@ -18,7 +18,7 @@ namespace CafeteriaClient.Operations
                 Console.WriteLine($"Error fetching notifications for employee: {ex.Message}");
             }
         }
-          public static void FetchEmployeeNotifications()
+        public static void FetchEmployeeNotifications()
         {
             try
             {

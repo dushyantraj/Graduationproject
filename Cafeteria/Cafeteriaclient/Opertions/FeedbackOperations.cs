@@ -48,7 +48,7 @@ namespace CafeteriaClient.Operations
                 HandleError($"Error sending feedback form: {ex.Message}");
             }
         }
-         public static void FetchAvailableItemsForDetailedFeedback()
+        public static void FetchAvailableItemsForDetailedFeedback()
         {
             try
             {

@@ -349,7 +349,7 @@ public static class CommandHandler
     static string HandleFetchNotifications(MySqlConnection connection)
     {
         int userTypeId = 3;
-        return DiscardMenu.FetchTodayNotificationsForEmployees(connection,userTypeId);
+        return DiscardMenu.FetchTodayNotificationsForEmployees(connection, userTypeId);
     }
 
     static string HandleFetchDiscardMenuItems(MySqlConnection connection)
