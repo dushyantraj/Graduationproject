@@ -128,7 +128,7 @@ public static class LoginOperations
                 return "LOGIN_FAILURE: Invalid credentials.";
             }
 
-            string roleName = RelatedUtilites.GetRoleName(connection, roleId);
+            string roleName = DatabaseUtilities.GetRoleNameById(connection, roleId);
 
             if (!IsValidRole(roleName))
             {

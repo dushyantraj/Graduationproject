@@ -18,7 +18,7 @@ namespace CafeteriaClient.Operations
                     return;
                 }
 
-                string request = $"{ServerCommands.FetchMenuWithRecommendation} {Program.CurrentUsername}";
+                string request = $"{ServerCommands.FetchRollout} {Program.CurrentUsername}";
                 string response = ServerCommunicator.SendCommandToServer(request);
                 Console.WriteLine("Available items for the next day:\n" + response);
 

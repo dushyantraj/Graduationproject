@@ -349,7 +349,7 @@ public static class CommandHandler
     static string HandleFetchNotifications(MySqlConnection connection)
     {
         int userTypeId = 3;
-        return DiscardMenu.FetchNotificationsForEmployees(userTypeId, connection);
+        return DiscardMenu.FetchTodayNotificationsForEmployees(connection,userTypeId);
     }
 
     static string HandleFetchDiscardMenuItems(MySqlConnection connection)
@@ -359,7 +359,7 @@ public static class CommandHandler
     }
     static string HandleFetchFeedback_DiscardMenuItems(MySqlConnection connection)
     {
-        return DiscardMenu.FetchRolloutFeedbackItems(connection);
+        return DiscardMenu.FetchCurrentRolloutFeedbackItems(connection);
 
     }
     static string HandleRemoveDiscardMenuItem(string[] parts, MySqlConnection connection)
@@ -384,7 +384,7 @@ public static class CommandHandler
         if (parts.Length > 1)
         {
             string itemName = parts[1];
-            return DiscardMenu.RollOutFoodForDetailsFeedback(connection, itemName);
+            return DiscardMenu.RollOutFoodForDetailedFeedback(connection, itemName);
         }
         else
         {
@@ -397,7 +397,7 @@ public static class CommandHandler
         if (parts.Length > 1)
         {
             string itemName = string.Join(" ", parts.Skip(1)).Trim();
-            return DiscardMenu.RollOutFoodForDetailsFeedback(connection, itemName);
+            return DiscardMenu.RollOutFoodForDetailedFeedback(connection, itemName);
         }
         else
         {
@@ -488,7 +488,7 @@ public static class CommandHandler
         if (parts.Length > 1)
         {
             string itemName = string.Join(" ", parts.Skip(1)).Trim();
-            return DiscardMenu.GetDetailedFeedbackQuestions(itemName);
+            return DiscardMenu.GetFeedbackQuestionsForItem(itemName);
         }
         else
         {

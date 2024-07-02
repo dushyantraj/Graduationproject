@@ -53,7 +53,7 @@ namespace CafeteriaClient.Menus
                     FeedbackOperations.DetailedFeedback();
                     break;
                 case "5":
-                    EmployeeOperations.FetchNotificationForEmployee();
+                    EmployeeOperations.FetchEmployeeNotifications();
                     break;
                 case "6":
                     EmployeeOperations.UpdateProfile();

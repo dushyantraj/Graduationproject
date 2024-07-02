@@ -82,7 +82,7 @@ namespace CafeteriaServer.Operations
         {
             try
             {
-                int menuId = RelatedUtilites.GetMenuId(connection, menuType);
+                int menuId = DatabaseUtilities.GetMenuIdByType(connection, menuType);
                 if (menuId == -1)
                     return "Invalid menu type.";
 

@@ -48,15 +48,25 @@ namespace CafeteriaClient.Operations
                 HandleError($"Error sending feedback form: {ex.Message}");
             }
         }
+         public static void FetchAvailableItemsForDetailedFeedback()
+        {
+            try
+            {
+                string response = ServerCommunicator.SendCommandToServer("CHECK_FEEDBACK_ROLLOUT");
+                Console.WriteLine("Available items for detailed feedback:\n" + response);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching available items for feedback: {ex.Message}");
+            }
+        }
 
         public static void DetailedFeedback()
         {
             try
             {
+                FetchAvailableItemsForDetailedFeedback();
                 string foodItem = PromptUserForFoodItem();
-
-                if (!CheckRolloutStatus(foodItem))
-                    return;
 
                 string feedbackQuestions = FetchFeedbackQuestions(foodItem);
                 Console.WriteLine(feedbackQuestions);

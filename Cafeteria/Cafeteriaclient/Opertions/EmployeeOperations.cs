@@ -18,6 +18,18 @@ namespace CafeteriaClient.Operations
                 Console.WriteLine($"Error fetching notifications for employee: {ex.Message}");
             }
         }
+          public static void FetchEmployeeNotifications()
+        {
+            try
+            {
+                string response = ServerCommunicator.SendCommandToServer("FETCH_NOTIFICATIONS");
+                Console.WriteLine("Your Notifications:\n" + response);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching notifications: {ex.Message}");
+            }
+        }
         public static void ViewEmployeeSelections()
         {
             try
