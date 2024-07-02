@@ -4,15 +4,16 @@ using System.Linq;
 using System.Text;
 using CafeteriaServer.Models.DTO;
 using CafeteriaServer.Recommendation;
+
 namespace CafeteriaServer.Services
 {
     public class RecommendationService
     {
-        public static List<(int ItemId, string Name, decimal Price, int Available, double AverageRating, string OverallSentiment, string Recommendation)> GetRecommendedItems(
-          Dictionary<int, (string Name, decimal Price, int Available)> menuItems,
+        public static List<MenuItemDTO> GetRecommendedItems(
+          Dictionary<int, ItemDTO> menuItems,
           Dictionary<string, List<FeedbackDTO>> feedbackDict)
         {
-            var recommendedItems = new List<(int ItemId, string Name, decimal Price, int Available, double AverageRating, string OverallSentiment, string Recommendation)>();
+            var recommendedItems = new List<MenuItemDTO>();
 
             foreach (var item in menuItems)
             {
@@ -29,7 +30,16 @@ namespace CafeteriaServer.Services
 
                         if (overallSentiment == "Positive")
                         {
-                            recommendedItems.Add((itemId, itemName, item.Value.Price, item.Value.Available, averageRating, overallSentiment, recommendation));
+                            var menuItemDTO = new MenuItemDTO
+                            {
+                                ItemId = itemId,
+                                ItemDTO = item.Value,
+                                AverageRating = averageRating,
+                                OverallSentiment = overallSentiment,
+                                Recommendation = recommendation
+                            };
+
+                            recommendedItems.Add(menuItemDTO);
                         }
                     }
                 }
@@ -40,7 +50,7 @@ namespace CafeteriaServer.Services
         }
 
 
-        private (double AverageRating, string OverallSentiment, string Recommendation) AnalyzeSentimentsAndRatings(List<(double Rating, string Comment, DateTime CreatedAt)> entries)
+        private static (double AverageRating, string OverallSentiment, string Recommendation) AnalyzeSentimentsAndRatings(List<FeedbackDTO> entries)
         {
             double averageRating = entries.Average(e => e.Rating);
             string overallSentiment = averageRating > 4 ? "Positive" : "Neutral"; // Simplified sentiment analysis
@@ -50,14 +60,14 @@ namespace CafeteriaServer.Services
         }
 
         public string FormatRecommendedItemsResponse(
-            List<(int ItemId, string Name, decimal Price, int Available, double AverageRating, string OverallSentiment, string Recommendation)> recommendedItems)
+            List<MenuItemDTO> recommendedItems)
         {
             var response = new StringBuilder();
             response.AppendLine("Recommended Items with Positive Sentiment:");
 
             foreach (var item in recommendedItems)
             {
-                response.AppendLine($"Item ID: {item.ItemId}, Name: {item.Name}, Price: {item.Price:F2}, Available: {item.Available}");
+                response.AppendLine($"Item ID: {item.ItemId}, Name: {item.ItemDTO.Name}, Price: {item.ItemDTO.Price:F2}, Available: {item.ItemDTO.Available}");
                 response.AppendLine($"  Rating: {item.AverageRating:F1}, Overall Sentiment: {item.OverallSentiment}, Recommendation: {item.Recommendation}");
             }
 

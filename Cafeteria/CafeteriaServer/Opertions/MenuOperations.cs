@@ -8,6 +8,7 @@ using CafeteriaServer.Utilities;
 using CafeteriaServer.Recommendation;
 using System.Data;
 using CafeteriaServer.Models.DTO;
+
 namespace CafeteriaServer.Operations
 {
     public class MenuOperations
@@ -45,7 +46,7 @@ namespace CafeteriaServer.Operations
         {
             try
             {
-                var menuItems = _menuService.GetMenuItems(connection);
+                var menuItems = _menuService.FetchMenuItems(connection);
                 var feedbackDict = _feedbackService.FetchAllFeedback(connection);
                 return GenerateMenuResponse(menuItems, feedbackDict);
             }
@@ -151,7 +152,7 @@ namespace CafeteriaServer.Operations
         }
 
         private string GenerateMenuResponse(
-            Dictionary<int, (string Name, decimal Price, int Available)> menuItems,
+            Dictionary<int, ItemDTO> menuItems,
             Dictionary<string, List<FeedbackDTO>> feedbackDict)
         {
             StringBuilder response = new StringBuilder();

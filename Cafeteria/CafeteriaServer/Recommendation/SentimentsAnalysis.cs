@@ -58,7 +58,7 @@ namespace CafeteriaServer.Recommendation
             bool isNegated = false;
 
             string[] words = comment.ToLower()
-                                    .Split(new char[] {' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
+                                    .Split(new char[] { ' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var word in words)
             {
@@ -106,4 +106,3 @@ namespace CafeteriaServer.Recommendation
         }
     }
 }
-

@@ -1,3 +1,5 @@
+
+using CafeteriaServer.Models.DTO;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
@@ -6,11 +8,11 @@ namespace CafeteriaServer.Services
 {
     public class MenuService
     {
-        public Dictionary<int, (string Name, decimal Price, int Available)> GetMenuItems(MySqlConnection connection)
+        public Dictionary<int, ItemDTO> FetchMenuItems(MySqlConnection connection)
         {
             string query = "SELECT item_id, name, price, available FROM MenuItem";
 
-            var menuItems = new Dictionary<int, (string Name, decimal Price, int Available)>();
+            var menuItems = new Dictionary<int, ItemDTO>();
 
             using (MySqlCommand cmd = new MySqlCommand(query, connection))
             {
@@ -23,29 +25,15 @@ namespace CafeteriaServer.Services
                         decimal price = reader.GetDecimal("price");
                         int available = reader.GetInt32("available");
 
-                        menuItems[itemId] = (name, price, available);
+                        var itemDTO = new ItemDTO
+                        {
+                            Name = name,
+                            Price = price,
+                            Available = available
+                        };
+
+                        menuItems[itemId] = itemDTO;
                     }
-                }
-            }
-
-            return menuItems;
-        }
-        public Dictionary<int, (string Name, decimal Price, int Available)> FetchMenuItems(MySqlConnection connection)
-        {
-            const string menuQuery = "SELECT item_id, name, price, available FROM MenuItem";
-            var menuItems = new Dictionary<int, (string Name, decimal Price, int Available)>();
-
-            using (MySqlCommand cmd = new MySqlCommand(menuQuery, connection))
-            using (var reader = cmd.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    int itemId = reader.GetInt32("item_id");
-                    string name = reader.GetString("name");
-                    decimal price = reader.GetDecimal("price");
-                    int available = reader.GetInt32("available");
-
-                    menuItems[itemId] = (name, price, available);
                 }
             }
 
