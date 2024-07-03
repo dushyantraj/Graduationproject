@@ -68,7 +68,7 @@ namespace CafeteriaClient.Menus
             {
                 Console.WriteLine("Invalid choice. Try again.");
             }
-            return choice != "7"; // Return false only if the choice is to logout
+            return choice != "7";
         }
     }
 }

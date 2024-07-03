@@ -18,7 +18,7 @@ namespace CafeteriaClient
             {
                 return creator();
             }
-            return null; // Handle unknown roles as needed
+            return null;
         }
     }
 }

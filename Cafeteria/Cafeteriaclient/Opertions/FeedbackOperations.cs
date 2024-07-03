@@ -18,7 +18,7 @@ namespace CafeteriaClient.Operations
                 var serverCommunicator = new ServerCommunicator();
                 string request = BuildFeedbackRequest(ServerCommands.SubmitFeedback, rolloutId, rating, comments);
                 string response = serverCommunicator.SendCommandToServer(request);
-                
+
                 DisplayResponse("feedback on rollout", response);
             }
             catch (Exception ex)
@@ -34,7 +34,7 @@ namespace CafeteriaClient.Operations
                 EmployeeOperations.ViewEmployeeSelections();
 
                 string foodItem = PromptUserForInput("Enter food item for review: ");
-                
+
                 // Create an instance of ServerCommunicator
                 var serverCommunicator = new ServerCommunicator();
                 string request = BuildSimpleRequest(ServerCommands.SendFeedbackForm, foodItem);
@@ -69,14 +69,14 @@ namespace CafeteriaClient.Operations
             {
                 FetchAvailableItemsForDetailedFeedback();
                 string foodItem = PromptUserForFoodItem();
-                
+
                 if (!CheckRolloutStatus(foodItem)) return;
 
                 string feedbackQuestions = FetchFeedbackQuestions(foodItem);
                 Console.WriteLine(feedbackQuestions);
 
                 string[] responses = PromptUserForFeedbackResponses();
-                
+
                 // Create an instance of ServerCommunicator
                 var serverCommunicator = new ServerCommunicator();
                 string request = BuildDetailedFeedbackRequest(foodItem, responses);
