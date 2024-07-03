@@ -1,62 +1,52 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
-using MySql.Data.MySqlClient;
+using CafeteriaServer.Models.DTO;
+using CafeteriaServer.Repositories;
 
 namespace CafeteriaServer.Services
 {
     public class EmployeeSelectionService
     {
-        private readonly MySqlConnection _connection;
+        private readonly EmployeeSelectionRepository _selectionRepository;
 
-        public EmployeeSelectionService(MySqlConnection connection)
+        public EmployeeSelectionService(EmployeeSelectionRepository selectionRepository)
         {
-            _connection = connection;
+            _selectionRepository = selectionRepository;
         }
 
-        public string FetchEmployeeSelections()
+        public string FetchEmployeeSelectionsForToday()
         {
             try
             {
                 DateTime today = DateTime.Today;
-                string todayString = today.ToString("yyyy-MM-dd");
+                var selections = _selectionRepository.GetEmployeeSelectionsForToday(today);
 
-                string query = @"
-                    SELECT es.user_id, ri.rollout_id, ri.item_name 
-                    FROM EmployeeSelections es 
-                    JOIN RolloutItems ri ON es.rollout_id = ri.rollout_id 
-                    WHERE DATE(ri.date_rolled_out) = @today";
-
-                StringBuilder sb = new StringBuilder();
-
-                using (MySqlCommand cmd = new MySqlCommand(query, _connection))
-                {
-                    cmd.Parameters.AddWithValue("@today", todayString);
-
-                    using (MySqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            int userId = reader.GetInt32("user_id");
-                            int rolloutId = reader.GetInt32("rollout_id");
-                            string itemName = reader.GetString("item_name");
-
-                            sb.AppendLine($"Employee ID: {userId}, Rollout ID: {rolloutId}, Item Name: {itemName}");
-                        }
-                    }
-                }
-
-                if (sb.Length == 0)
-                {
-                    return "No employee selections found for today.";
-                }
-
-                return sb.ToString();
+                return FormatSelectionsResponse(selections);
             }
             catch (Exception ex)
             {
                 LogException("Error fetching employee selections", ex);
                 return "Error fetching employee selections: " + ex.Message;
             }
+        }
+
+        private string FormatSelectionsResponse(List<EmployeeSelectionDTO> selections)
+        {
+            if (selections.Count == 0)
+            {
+                return "No employee selections found for today.";
+            }
+
+            StringBuilder response = new StringBuilder();
+            response.AppendLine("Employee Selections for Today:");
+
+            foreach (var selection in selections)
+            {
+                response.AppendLine($"Employee ID: {selection.UserId}, Rollout ID: {selection.RolloutId}, Item Name: {selection.ItemName}");
+            }
+
+            return response.ToString();
         }
 
         private void LogException(string message, Exception ex)

@@ -4,8 +4,6 @@ namespace CafeteriaServer.Utilities
 {
     public static class DatabaseUtilities
     {
-
-
         private const string RoleNotFoundMessage = "Role with ID {0} not found";
         private const int InvalidMenuId = -1;
 
@@ -47,7 +45,6 @@ namespace CafeteriaServer.Utilities
                 return null;
             }
         }
-
         private static void LogError(string errorMessage, Exception exception)
         {
             Console.WriteLine($"{errorMessage}: {exception.Message}");

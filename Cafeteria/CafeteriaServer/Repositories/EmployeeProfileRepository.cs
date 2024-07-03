@@ -1,7 +1,8 @@
 using MySql.Data.MySqlClient;
 using System;
 using CafeteriaServer.Utilities;
-// CafeteriaServer/Repositories/EmployeeProfileRepository.cs
+using CafeteriaServer.Models;
+using CafeteriaServer.Operations;
 namespace CafeteriaServer.Repositories
 {
     public class EmployeeProfileRepository
@@ -17,7 +18,7 @@ namespace CafeteriaServer.Repositories
             }
         }
 
-        public string UpdateProfile(MySqlConnection connection, int userId, string preference, string spiceLevel, string cuisinePreference, bool sweetTooth)
+        public string UpdateProfile(MySqlConnection connection, UserProfile profileData)
         {
             string updateQuery = @"
                 UPDATE EmployeeProfiles 
@@ -29,13 +30,13 @@ namespace CafeteriaServer.Repositories
 
             using (MySqlCommand updateCmd = new MySqlCommand(updateQuery, connection))
             {
-                DatabaseUtilities.AddProfileParameters(updateCmd, userId, preference, spiceLevel, cuisinePreference, sweetTooth);
+                AddProfileParameters(updateCmd, profileData);
                 int rowsAffected = updateCmd.ExecuteNonQuery();
                 return rowsAffected > 0 ? "Profile updated successfully." : "Profile update failed.";
             }
         }
 
-        public string InsertProfile(MySqlConnection connection, int userId, string preference, string spiceLevel, string cuisinePreference, bool sweetTooth)
+        public string InsertProfile(MySqlConnection connection, UserProfile profileData)
         {
             string insertQuery = @"
                 INSERT INTO EmployeeProfiles (UserID, Preference, SpiceLevel, CuisinePreference, SweetTooth) 
@@ -43,10 +44,19 @@ namespace CafeteriaServer.Repositories
 
             using (MySqlCommand insertCmd = new MySqlCommand(insertQuery, connection))
             {
-                DatabaseUtilities.AddProfileParameters(insertCmd, userId, preference, spiceLevel, cuisinePreference, sweetTooth);
+                AddProfileParameters(insertCmd, profileData);
                 int rowsAffected = insertCmd.ExecuteNonQuery();
                 return rowsAffected > 0 ? "Profile created successfully." : "Profile creation failed.";
             }
+        }
+
+        private void AddProfileParameters(MySqlCommand cmd, UserProfile profileData)
+        {
+            cmd.Parameters.AddWithValue("@userId", profileData.UserID);
+            cmd.Parameters.AddWithValue("@preference", profileData.Preference);
+            cmd.Parameters.AddWithValue("@spiceLevel", profileData.SpiceLevel);
+            cmd.Parameters.AddWithValue("@cuisinePreference", profileData.CuisinePreference);
+            cmd.Parameters.AddWithValue("@sweetTooth", profileData.SweetTooth);
         }
 
         public int GetUserIdByUsername(MySqlConnection connection, string username)

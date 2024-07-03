@@ -1,153 +1,60 @@
-
-using System;
-using System.Collections.Generic;
-using MySql.Data.MySqlClient;
-using CafeteriaServer.Models;
 using System.Text;
+using System;
+using CafeteriaServer.Models;
+using CafeteriaServer.Repositories;
+using MySql.Data.MySqlClient;
 
 namespace CafeteriaServer.Services
 {
     public class NotificationService
     {
-        private readonly MySqlConnection _connection;
+        private readonly NotificationRepository _repository;
 
         public NotificationService(MySqlConnection connection)
         {
-            _connection = connection;
+            _repository = new NotificationRepository(connection);
         }
 
         public void SendNotification(Notification notification)
         {
-            const string query = "INSERT INTO Notifications (message, userType_id, notificationDateTime) VALUES (@message, @userType_id, @notificationDateTime)";
-            MySqlCommand command = new MySqlCommand(query, _connection);
-
-            command.Parameters.AddWithValue("@message", notification.Message);
-            command.Parameters.AddWithValue("@userType_id", notification.Role);
-            command.Parameters.AddWithValue("@notificationDateTime", notification.Date);
-
-            command.ExecuteNonQuery();
+            _repository.AddNotification(notification);
         }
 
-        public static void RolloutNotification(Notification notification, MySqlConnection connection)
+        public string GetChefNotification(int userTypeId)
         {
-            const string query = "INSERT INTO Notifications (message, userType_id, notificationDateTime) VALUES (@message, @userType_id, @notificationDateTime)";
-            MySqlCommand command = new MySqlCommand(query, connection);
+            Notification latestNotification = _repository.GetLatestChefNotification(userTypeId);
 
-            command.Parameters.AddWithValue("@message", notification.Message);
-            command.Parameters.AddWithValue("@userType_id", notification.Role);
-            command.Parameters.AddWithValue("@notificationDateTime", notification.Date);
-
-            command.ExecuteNonQuery();
-        }
-
-        public static string GetChefNotification(int userTypeId, MySqlConnection connection)
-        {
-            try
+            if (latestNotification != null)
             {
-                const string query = "SELECT message, notificationDateTime " +
-                                     "FROM Notifications " +
-                                     "WHERE userType_id = @userType_id " +
-                                     "ORDER BY notificationDateTime DESC " +
-                                     "LIMIT 1";
+                return $"Notification: {latestNotification.Message}, Date: {latestNotification.Date}";
+            }
 
-                MySqlCommand command = new MySqlCommand(query, connection);
-                command.Parameters.AddWithValue("@userType_id", userTypeId);
+            return "No notifications found.";
+        }
 
-                using (MySqlDataReader reader = command.ExecuteReader())
+        public string GetEmployeeNotification(int userTypeId)
+        {
+            var notifications = _repository.GetRolloutNotificationsForToday(userTypeId);
+
+            if (notifications.Count > 0)
+            {
+                var response = new StringBuilder();
+                response.AppendLine("Rollout Notifications for Today:");
+
+                foreach (var notification in notifications)
                 {
-                    if (reader.Read())
-                    {
-                        Notification notification = new Notification
-                        {
-                            Message = reader.GetString("message"),
-                            Date = Convert.ToDateTime(reader["notificationDateTime"])
-                        };
-                        return $"Notification: {notification.Message}, Date: {notification.Date}";
-                    }
+                    response.AppendLine($"Notification: {notification.Message}, Date: {notification.Date}");
                 }
 
-                return "No notifications found.";
+                return response.ToString();
             }
-            catch (Exception ex)
-            {
-                LogException("Error fetching notification", ex);
-                return "Error fetching notification: " + ex.Message;
-            }
+
+            return "No rollout notifications found for today.";
         }
 
-        public static string GetEmployeeNotification(int userTypeId, MySqlConnection connection)
+        public void NotifyEmployeesAndChef(string itemName)
         {
-            try
-            {
-                DateTime today = DateTime.Today;
-                string todayString = today.ToString("yyyy-MM-dd");
-
-                const string query = "SELECT message, notificationDateTime " +
-                                     "FROM Notifications " +
-                                     "WHERE userType_id = @userType_id " +
-                                     "AND DATE(notificationDateTime) = @today " +
-                                     "AND message LIKE '%rolled out%' " +
-                                     "ORDER BY notificationDateTime DESC";
-
-                StringBuilder sb = new StringBuilder();
-
-                using (MySqlCommand command = new MySqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@userType_id", userTypeId);
-                    command.Parameters.AddWithValue("@today", todayString);
-
-                    using (MySqlDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            string message = reader["message"].ToString();
-                            DateTime date = Convert.ToDateTime(reader["notificationDateTime"]);
-
-                            sb.AppendLine($"Notification: {message}, Date: {date}");
-                        }
-                    }
-                }
-
-                return sb.Length > 0 ? sb.ToString() : "No rollout notifications found for today.";
-            }
-            catch (Exception ex)
-            {
-                LogException("Error fetching notifications", ex);
-                return "Error fetching notifications: " + ex.Message;
-            }
-        }
-
-        public static void NotifyEmployeesAndChef(MySqlConnection connection, string itemName)
-        {
-            AddNotification(new Notification
-            {
-                Message = $"New item added: {itemName}",
-                Date = DateTime.Now,
-                Role = 2
-            }, connection);
-
-            AddNotification(new Notification
-            {
-                Message = $"New item added: {itemName}",
-                Date = DateTime.Now,
-                Role = 3
-            }, connection);
-        }
-        public static void AddNotification(Notification notification, MySqlConnection connection)
-        {
-            const string query = "INSERT INTO Notifications (message, userType_id, notificationDateTime) VALUES (@message, @userType_id, @notificationDateTime)";
-            MySqlCommand command = new MySqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@message", notification.Message);
-            command.Parameters.AddWithValue("@userType_id", notification.Role);
-            command.Parameters.AddWithValue("@notificationDateTime", notification.Date);
-
-            command.ExecuteNonQuery();
-        }
-
-        private static void LogException(string message, Exception ex)
-        {
-            Console.WriteLine($"Exception occurred: {message}\nDetails: {ex.Message}");
+            _repository.NotifyEmployeesAndChef(itemName);
         }
     }
 }

@@ -1,83 +1,43 @@
-
 using System;
 using CafeteriaClient.Services;
 using CafeteriaClient.Utilities;
+
 namespace CafeteriaClient.Operations
 {
     public static class EmployeeOperations
     {
         public static void FetchNotificationForEmployee()
         {
-            try
-            {
-                string response = ServerCommunicator.SendCommandToServer(ServerCommands.FetchNotificationForEmployee);
-                Console.WriteLine("Received from server:\n{0}", response);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching notifications for employee: {ex.Message}");
-            }
+            ExecuteServerCommand(ServerCommands.FetchNotificationForEmployee, "notifications for employee");
         }
+
         public static void FetchEmployeeNotifications()
         {
-            try
-            {
-                string response = ServerCommunicator.SendCommandToServer("FETCH_NOTIFICATIONS");
-                Console.WriteLine("Your Notifications:\n" + response);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching notifications: {ex.Message}");
-            }
+            ExecuteServerCommand("FETCH_NOTIFICATIONS", "notifications");
         }
+
         public static void ViewEmployeeSelections()
         {
-            try
-            {
-                string response = ServerCommunicator.SendCommandToServer(ServerCommands.FetchEmployeeSelections);
-                Console.WriteLine("Employee Selections:\n{0}", response);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching employee selections: {ex.Message}");
-            }
+            ExecuteServerCommand(ServerCommands.FetchEmployeeSelections, "employee selections");
         }
 
         public static void UpdateProfile()
         {
             try
             {
-                Console.WriteLine("Please answer these questions to update your profile:");
+                var profileUpdater = new ProfileUpdater();
+                var profileDetails = profileUpdater.GetProfileDetails();
 
-                Console.WriteLine("1) Please select one:\n- Vegetarian\n- Non Vegetarian\n- Eggetarian");
-                string preference = Console.ReadLine().Trim();
-
-                // Ensure exact match for ENUM values
-                string[] validPreferences = { "Vegetarian", "Non Vegetarian", "Eggetarian" };
-                if (!Array.Exists(validPreferences, p => p.Equals(preference, StringComparison.OrdinalIgnoreCase)))
+                if (profileDetails == null)
                 {
-                    Console.WriteLine($"Error: Invalid value for Preference: '{preference}'.");
+                    // Error message already handled in GetProfileDetails
                     return;
                 }
 
-                Console.WriteLine("2) Please select your spice level:\n- High\n- Medium\n- Low");
-                string spiceLevel = Console.ReadLine().Trim();
-
-                Console.WriteLine("3) What do you prefer most?\n- North Indian\n- South Indian\n- Other");
-                string cuisinePreference = Console.ReadLine().Trim();
-
-                Console.WriteLine("4) Do you have a sweet tooth?\n- Yes\n- No");
-                string sweetToothResponse = Console.ReadLine().Trim();
-                bool sweetTooth = sweetToothResponse.Equals("Yes", StringComparison.OrdinalIgnoreCase);
-
-                if (string.IsNullOrEmpty(Program.CurrentUsername))
-                {
-                    Console.WriteLine("Error: No user is currently logged in.");
-                    return;
-                }
-
-                string request = $"{ServerCommands.UpdateProfile} {Program.CurrentUsername} \"{preference}\" \"{spiceLevel}\" \"{cuisinePreference}\" {sweetTooth.ToString().ToLower()}";
-                string response = ServerCommunicator.SendCommandToServer(request);
+                string request = BuildUpdateProfileRequest(profileDetails);
+                // Use a local instance of ServerCommunicator
+                var serverCommunicator = new ServerCommunicator();
+                string response = serverCommunicator.SendCommandToServer(request);
 
                 Console.WriteLine(response);
             }
@@ -87,7 +47,99 @@ namespace CafeteriaClient.Operations
             }
         }
 
+        private static void ExecuteServerCommand(string command, string description)
+        {
+            try
+            {
+                // Use a local instance of ServerCommunicator
+                var serverCommunicator = new ServerCommunicator();
+                string response = serverCommunicator.SendCommandToServer(command);
+                Console.WriteLine($"Received from server ({description}):\n{response}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching {description}: {ex.Message}");
+            }
+        }
+
+        private static string BuildUpdateProfileRequest(ProfileDetails profile)
+        {
+            return $"{ServerCommands.UpdateProfile} {Program.CurrentUsername} \"{profile.Preference}\" \"{profile.SpiceLevel}\" \"{profile.CuisinePreference}\" {profile.SweetTooth.ToString().ToLower()}";
+        }
+    }
+
+    // Helper class to handle profile updates
+    public class ProfileUpdater
+    {
+        public ProfileDetails GetProfileDetails()
+        {
+            if (string.IsNullOrEmpty(Program.CurrentUsername))
+            {
+                Console.WriteLine("Error: No user is currently logged in.");
+                return null;
+            }
+
+            Console.WriteLine("Please answer these questions to update your profile:");
+
+            string preference = GetValidatedPreference();
+            if (preference == null) return null;
+
+            string spiceLevel = GetSpiceLevel();
+            string cuisinePreference = GetCuisinePreference();
+            bool sweetTooth = GetSweetToothPreference();
+
+            return new ProfileDetails(preference, spiceLevel, cuisinePreference, sweetTooth);
+        }
+
+        private string GetValidatedPreference()
+        {
+            Console.WriteLine("1) Please select one:\n- Vegetarian\n- Non Vegetarian\n- Eggetarian");
+            string preference = Console.ReadLine().Trim();
+
+            string[] validPreferences = { "Vegetarian", "Non Vegetarian", "Eggetarian" };
+            if (!Array.Exists(validPreferences, p => p.Equals(preference, StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine($"Error: Invalid value for Preference: '{preference}'.");
+                return null;
+            }
+
+            return preference;
+        }
+
+        private string GetSpiceLevel()
+        {
+            Console.WriteLine("2) Please select your spice level:\n- High\n- Medium\n- Low");
+            return Console.ReadLine().Trim();
+        }
+
+        private string GetCuisinePreference()
+        {
+            Console.WriteLine("3) What do you prefer most?\n- North Indian\n- South Indian\n- Other");
+            return Console.ReadLine().Trim();
+        }
+
+        private bool GetSweetToothPreference()
+        {
+            Console.WriteLine("4) Do you have a sweet tooth?\n- Yes\n- No");
+            string sweetToothResponse = Console.ReadLine().Trim();
+            return sweetToothResponse.Equals("Yes", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    // Model class to encapsulate profile details
+    public class ProfileDetails
+    {
+        public string Preference { get; }
+        public string SpiceLevel { get; }
+        public string CuisinePreference { get; }
+        public bool SweetTooth { get; }
+
+        public ProfileDetails(string preference, string spiceLevel, string cuisinePreference, bool sweetTooth)
+        {
+            Preference = preference;
+            SpiceLevel = spiceLevel;
+            CuisinePreference = cuisinePreference;
+            SweetTooth = sweetTooth;
+        }
     }
 }
-
-

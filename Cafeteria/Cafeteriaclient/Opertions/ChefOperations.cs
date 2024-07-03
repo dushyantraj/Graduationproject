@@ -1,17 +1,24 @@
-
 using System;
 using CafeteriaClient.Utilities;
 using CafeteriaClient.Services;
 using System.Text;
+
 namespace CafeteriaClient.Operations
 {
-    public static class ChefOperations
+    public class ChefOperations
     {
-        public static void FetchNotificationForChef()
+        private ServerCommunicator serverCommunicator;
+
+        public ChefOperations()
+        {
+            serverCommunicator = new ServerCommunicator();
+        }
+
+        public void FetchNotificationForChef()
         {
             try
             {
-                string response = ServerCommunicator.SendCommandToServer(ServerCommands.FetchNotificationForChef);
+                string response = serverCommunicator.SendCommandToServer(ServerCommands.FetchNotificationForChef);
                 Console.WriteLine("Received from server:\n{0}", response);
             }
             catch (Exception ex)
@@ -20,27 +27,54 @@ namespace CafeteriaClient.Operations
             }
         }
 
-        public static void RolloutFoodItemForNextDay()
+        public void RolloutFoodItemForNextDay()
         {
             try
             {
-                MenuOperations.FetchMenuItemsWithRecommendation();
+                var menuOperations = new MenuOperations();
+                var rolloutManager = new RolloutManager();
 
-                Console.WriteLine("Enter the Item IDs (separated by spaces) to roll out for the next day:");
-                string itemIdsInput = Console.ReadLine();
-                string[] itemIds = itemIdsInput.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                // Fetch and display menu items with recommendations
+                menuOperations.FetchMenuItemsWithRecommendation();
 
-                string request = BuildRolloutRequest(itemIds);
-                string response = ServerCommunicator.SendCommandToServer(request);
-                Console.WriteLine("Received from server: {0}", response);
+                // Get the selected item IDs from the user
+                string[] selectedItems = rolloutManager.GetItemSelectionsFromUser();
+
+                // Build and send the rollout request
+                rolloutManager.SendRolloutRequest(selectedItems);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error rolling out food item for next day: {ex.Message}");
             }
         }
+    }
 
-        private static string BuildRolloutRequest(string[] itemIds)
+    // Class to handle the rollout process
+    public class RolloutManager
+    {
+        private ServerCommunicator serverCommunicator;
+
+        public RolloutManager()
+        {
+            serverCommunicator = new ServerCommunicator();
+        }
+
+        public string[] GetItemSelectionsFromUser()
+        {
+            Console.WriteLine("Enter the Item IDs (separated by spaces) to roll out for the next day:");
+            string itemIdsInput = Console.ReadLine();
+            return itemIdsInput.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        public void SendRolloutRequest(string[] itemIds)
+        {
+            string request = BuildRolloutRequest(itemIds);
+            string response = serverCommunicator.SendCommandToServer(request);
+            Console.WriteLine("Received from server: {0}", response);
+        }
+
+        private string BuildRolloutRequest(string[] itemIds)
         {
             StringBuilder sb = new StringBuilder(ServerCommands.Rollout);
 

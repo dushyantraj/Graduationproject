@@ -1,4 +1,3 @@
-
 using System;
 using CafeteriaClient.Services;
 
@@ -26,16 +25,25 @@ namespace CafeteriaClient.Utilities
 
         private static void PerformLogout(string username)
         {
-            string logoutCommand = $"LOGOUT {username}";
-            string serverResponse = ServerCommunicator.SendCommandToServer(logoutCommand);
+            try
+            {
+                // Assuming ServerCommunicator needs to be instantiated
+                ServerCommunicator serverCommunicator = new ServerCommunicator();
+                string logoutCommand = $"LOGOUT {username}";
+                string serverResponse = serverCommunicator.SendCommandToServer(logoutCommand);
 
-            if (serverResponse.StartsWith("LOGOUT_SUCCESS"))
-            {
-                Console.WriteLine("Logout successful.");
+                if (serverResponse.StartsWith("LOGOUT_SUCCESS"))
+                {
+                    Console.WriteLine("Logout successful.");
+                }
+                else
+                {
+                    Console.WriteLine("Logout failed: " + serverResponse);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("Logout failed: " + serverResponse);
+                Console.WriteLine($"Error communicating with server during logout: {ex.Message}");
             }
         }
     }

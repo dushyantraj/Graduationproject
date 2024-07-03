@@ -6,11 +6,20 @@ namespace CafeteriaClient.Services
 {
     public class ServerCommunicator
     {
-        public static string SendCommandToServer(string command)
+        private readonly string serverAddress;
+        private readonly int serverPort;
+
+        public ServerCommunicator(string address = "127.0.0.1", int port = 13000)
+        {
+            serverAddress = address;
+            serverPort = port;
+        }
+
+        public string SendCommandToServer(string command)
         {
             try
             {
-                using (TcpClient client = new TcpClient("127.0.0.1", 13000))
+                using (TcpClient client = new TcpClient(serverAddress, serverPort))
                 using (NetworkStream stream = client.GetStream())
                 {
                     byte[] requestBytes = Encoding.UTF8.GetBytes(command);
@@ -26,7 +35,7 @@ namespace CafeteriaClient.Services
             }
             catch (Exception ex)
             {
-                return "Error: " + ex.Message;
+                return $"Error: {ex.Message}";
             }
         }
     }

@@ -2,13 +2,9 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using CafeteriaServer.Models;
-using CafeteriaServer.Services;
-using CafeteriaServer.Utilities;
-using CafeteriaServer.Recommendation;
-using System.Data;
 using CafeteriaServer.Models.DTO;
-
+using CafeteriaServer.Services;
+using CafeteriaServer.Recommendation;
 namespace CafeteriaServer.Operations
 {
     public class MenuOperations
@@ -18,13 +14,18 @@ namespace CafeteriaServer.Operations
         private readonly RecommendationService _recommendationService;
         private readonly SelectionService _selectionService;
 
-        public MenuOperations()
+        public MenuOperations(
+            MenuService menuService,
+            FeedbackService feedbackService,
+            RecommendationService recommendationService,
+            SelectionService selectionService)
         {
-            _menuService = new MenuService();
-            _feedbackService = new FeedbackService();
-            _recommendationService = new RecommendationService();
-            _selectionService = new SelectionService();
+            _menuService = menuService ?? throw new ArgumentNullException(nameof(menuService));
+            _feedbackService = feedbackService ?? throw new ArgumentNullException(nameof(feedbackService));
+            _recommendationService = recommendationService ?? throw new ArgumentNullException(nameof(recommendationService));
+            _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
         }
+
         public string FetchMenuItemsWithFeedback(MySqlConnection connection)
         {
             try
@@ -34,14 +35,14 @@ namespace CafeteriaServer.Operations
 
                 var recommendedItems = RecommendationService.GetRecommendedItems(menuItems, feedbackDict);
 
-
                 return _recommendationService.FormatRecommendedItemsResponse(recommendedItems);
             }
             catch (Exception ex)
             {
-                return $"Error fetching menu items: {ex.Message}";
+                return $"Error fetching menu items with feedback: {ex.Message}";
             }
         }
+
         public string FetchMenu(MySqlConnection connection)
         {
             try
@@ -52,11 +53,7 @@ namespace CafeteriaServer.Operations
             }
             catch (Exception ex)
             {
-                return $"Error fetching menu items: {ex.Message}";
-            }
-            finally
-            {
-                Console.WriteLine("Closing connection...");
+                return $"Error fetching menu: {ex.Message}";
             }
         }
 
@@ -66,7 +63,6 @@ namespace CafeteriaServer.Operations
             {
                 var menuItems = _menuService.FetchMenuItems(connection);
                 var feedbackDict = _feedbackService.FetchFeedback(connection);
-
 
                 var recommendedItems = RecommendationService.GetRecommendedItems(menuItems, feedbackDict);
 
@@ -78,15 +74,11 @@ namespace CafeteriaServer.Operations
             }
         }
 
-        public string AddMenuItemToMenu(MySqlConnection connection, string menuType, string itemName, decimal price, int available, string foodType)
+        public string AddMenuItemToMenu(MySqlConnection connection, AddMenuItemDTO dto)
         {
             try
             {
-                int menuId = DatabaseUtilities.GetMenuIdByType(connection, menuType);
-                if (menuId == -1)
-                    return "Invalid menu type.";
-
-                return _menuService.AddMenuItem(connection, menuId, itemName, price, available, foodType);
+                return _menuService.AddMenuItem(connection, dto);
             }
             catch (Exception ex)
             {
@@ -94,11 +86,11 @@ namespace CafeteriaServer.Operations
             }
         }
 
-        public string UpdateMenuItemInMenu(MySqlConnection connection, string itemName, decimal price, int available)
+        public string UpdateMenuItemInMenu(MySqlConnection connection, UpdateMenuItemDTO dto)
         {
             try
             {
-                return _menuService.UpdateMenuItem(connection, itemName, price, available);
+                return _menuService.UpdateMenuItem(connection, dto);
             }
             catch (Exception ex)
             {
@@ -118,42 +110,7 @@ namespace CafeteriaServer.Operations
             }
         }
 
-        public string SelectFoodItemsForNextDay(MySqlConnection connection, int userId, int[] rolloutIds)
-        {
-            try
-            {
-                EnsureConnectionOpen(connection);
-                return _selectionService.SelectFoodItemsForNextDay(connection, userId, rolloutIds);
-            }
-            catch (Exception ex)
-            {
-                return $"Error selecting food items for next day: {ex.Message}";
-            }
-            finally
-            {
-                EnsureConnectionClosed(connection);
-            }
-        }
-
-        private void EnsureConnectionOpen(MySqlConnection connection)
-        {
-            if (connection.State == ConnectionState.Closed)
-            {
-                connection.Open();
-            }
-        }
-
-        private void EnsureConnectionClosed(MySqlConnection connection)
-        {
-            if (connection.State == ConnectionState.Open)
-            {
-                connection.Close();
-            }
-        }
-
-        private string GenerateMenuResponse(
-            Dictionary<int, ItemDTO> menuItems,
-            Dictionary<string, List<FeedbackDTO>> feedbackDict)
+        private string GenerateMenuResponse(Dictionary<int, ItemDTO> menuItems, Dictionary<string, List<FeedbackDTO>> feedbackDict)
         {
             StringBuilder response = new StringBuilder();
             response.AppendLine("Menu Items:");
@@ -182,7 +139,20 @@ namespace CafeteriaServer.Operations
 
             return response.ToString();
         }
+    }
 
-
+    public class UpdateMenuItemDTO
+    {
+        public string ItemName { get; set; }
+        public decimal Price { get; set; }
+        public int Available { get; set; }
+    }
+    public class AddMenuItemDTO
+    {
+        public string MenuType { get; set; }
+        public string ItemName { get; set; }
+        public decimal Price { get; set; }
+        public int Available { get; set; }
+        public string FoodType { get; set; }
     }
 }

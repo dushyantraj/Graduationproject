@@ -5,11 +5,13 @@ namespace CafeteriaClient.Operations
 {
     public static class NotificationOperations
     {
+        private static ServerCommunicator serverCommunicator = new ServerCommunicator();
+
         public static void FetchEmployeeNotifications()
         {
             try
             {
-                string response = ServerCommunicator.SendCommandToServer("FETCH_NOTIFICATIONS");
+                string response = serverCommunicator.SendCommandToServer("FETCH_NOTIFICATIONS");
                 Console.WriteLine("Your Notifications:\n" + response);
             }
             catch (Exception ex)

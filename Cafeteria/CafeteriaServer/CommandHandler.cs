@@ -10,208 +10,145 @@ using CafeteriaServer.Repositories;
 using CafeteriaServer.Utilities;
 using CafeteriaServer.Models;
 
-public static class CommandHandler
+public class CommandHandler
 {
-    public static string ProcessCommand(string data, MySqlConnection connection)
+    private readonly MenuOperations _menuOperations;
+
+    public CommandHandler(MenuOperations menuOperations)
+    {
+        _menuOperations = menuOperations ?? throw new ArgumentNullException(nameof(menuOperations));
+    }
+
+    public string ProcessCommand(string data, MySqlConnection connection)
     {
         string[] parts = data.Split(' ');
         string command = parts[0];
-        string response = "";
 
-        switch (command)
+        return command switch
         {
-            case "LOGIN":
-                response = HandleLoginCommand(parts, connection);
-                break;
-            case "FETCH_WITH_RECOMMENDATION":
-                response = HandleFetchMenuItemsWithFeedback(connection);
-                break;
-            case "MENU_FETCH":
-                response = HandleMenuFetch(connection);
-                break;
-            case "ADD":
-                response = HandleAddMenuItem(parts, connection);
-                break;
-            case "UPDATE":
-                response = HandleUpdateMenuItem(parts, connection);
-                break;
-            case "DELETE":
-                response = HandleDeleteMenuItem(parts, connection);
-                break;
-            case "ROLLOUT":
-                response = HandleRolloutCommand(parts, connection);
-                break;
-            case "FETCH_FEEDBACK":
-                response = HandleFetchFeedback(connection);
-                break;
-            case "FETCH_EMPLOYEE_SELECTIONS":
-                response = HandleFetchEmployeeSelections(connection);
-                break;
-            case "FETCH_ROLLOUT":
-                response = HandleFetchRolloutItems(parts, connection);
-                break;
-            case "SELECT_ITEM":
-                response = HandleSelectItem(parts, connection);
-                break;
-            case "SEND_FEEDBACK_FORM":
-                response = HandleSendFeedbackForm(parts, connection);
-                break;
-            case "SUBMIT_FEEDBACK":
-                response = HandleSubmitFeedback(parts, connection);
-                break;
-            case "LOGOUT":
-                response = HandleLogout(parts, connection);
-                break;
-            case "FETCH_NOTIFICATION_FOR_EMPLOYEE":
-                response = HandleFetchEmployeeNotification(connection);
-                break;
-            case "FETCH_NOTIFICATION_FOR_CHEF":
-                response = HandleFetchChefNotification(connection);
-                break;
-            case "FETCH_NOTIFICATIONS":
-                response = HandleFetchNotifications(connection);
-                break;
-            case "FETCH_DISCARD_MENU_ITEMS":
-                response = HandleFetchDiscardMenuItems(connection);
-                break;
-            case "REMOVE_DISCARD_MENU_ITEM":
-                response = HandleRemoveDiscardMenuItem(parts, connection);
-                break;
-            case "GET_DETAILED_FEEDBACK":
-                response = HandleGetDetailedFeedback(parts, connection);
-                break;
-            case "ROLL_OUT_FEEDBACK":
-                response = HandleRollOutFeedback(parts, connection);
-                break;
-            case "SUBMIT_DETAILED_FEEDBACK":
-                response = HandleSubmitDetailedFeedback(parts, connection);
-                break;
-            case "UPDATE_PROFILE":
-                response = HandleUpdateProfile(parts, connection);
-                break;
-            case "FETCH_DETAILED_FEEDBACK_QUESTIONS":
-                response = HandleFetchDetailedFeedbackQuestions(parts, connection);
-                break;
-            case "CHECK_FEEDBACK_ROLLOUT":
-                response = HandleFetchFeedback_DiscardMenuItems(connection);
-                break;
-            default:
-                response = "Invalid command.";
-                break;
-        }
-
-        return response;
+            "LOGIN" => HandleLoginCommand(parts, connection),
+            "FETCH_WITH_RECOMMENDATION" => HandleFetchMenuItemsWithFeedback(connection),
+            "MENU_FETCH" => HandleMenuFetch(connection),
+            "ADD" => HandleAddMenuItem(parts, connection),
+            "UPDATE" => HandleUpdateMenuItem(parts, connection),
+            "DELETE" => HandleDeleteMenuItem(parts, connection),
+            "ROLLOUT" => HandleRolloutCommand(parts, connection),
+            "FETCH_FEEDBACK" => HandleFetchFeedback(connection),
+            "FETCH_EMPLOYEE_SELECTIONS" => HandleFetchEmployeeSelections(connection),
+            "FETCH_ROLLOUT" => HandleFetchRolloutItems(parts, connection),
+            "SELECT_ITEM" => HandleSelectItem(parts, connection),
+            "SEND_FEEDBACK_FORM" => HandleSendFeedbackForm(parts, connection),
+            "SUBMIT_FEEDBACK" => HandleSubmitFeedback(parts, connection),
+            "LOGOUT" => HandleLogout(parts, connection),
+            "FETCH_NOTIFICATION_FOR_EMPLOYEE" => HandleFetchEmployeeNotification(connection),
+            "FETCH_NOTIFICATION_FOR_CHEF" => HandleFetchChefNotification(connection),
+            "FETCH_NOTIFICATIONS" => HandleFetchNotifications(connection),
+            "FETCH_DISCARD_MENU_ITEMS" => HandleFetchDiscardMenuItems(connection),
+            "REMOVE_DISCARD_MENU_ITEM" => HandleRemoveDiscardMenuItem(parts, connection),
+            "GET_DETAILED_FEEDBACK" => HandleGetDetailedFeedback(parts, connection),
+            "ROLL_OUT_FEEDBACK" => HandleRollOutFeedback(parts, connection),
+            "SUBMIT_DETAILED_FEEDBACK" => HandleSubmitDetailedFeedback(parts, connection),
+            "UPDATE_PROFILE" => HandleUpdateProfile(parts, connection),
+            "FETCH_DETAILED_FEEDBACK_QUESTIONS" => HandleFetchDetailedFeedbackQuestions(parts, connection),
+            "CHECK_FEEDBACK_ROLLOUT" => HandleFetchFeedback_DiscardMenuItems(connection),
+            _ => "Invalid command.",
+        };
     }
 
-
-
-    // Command Handlers (Move each to respective service files)
-
-    static string HandleLoginCommand(string[] parts, MySqlConnection connection)
+    private static string HandleLoginCommand(string[] parts, MySqlConnection connection)
     {
         if (parts.Length >= 3)
         {
             string username = parts[1];
             string password = parts[2];
-            return LoginOperations.LoginUser(connection, username, password);
+
+            var credentials = new UserCredentials
+            {
+                Username = username,
+                Password = password
+            };
+
+            return LoginOperations.LoginUser(connection, credentials);
         }
-        else
-        {
-            return "Invalid login command format.";
-        }
+        return "Invalid login command format.";
     }
 
-    static string HandleFetchMenuItemsWithFeedback(MySqlConnection connection)
+    private string HandleFetchMenuItemsWithFeedback(MySqlConnection connection)
     {
-        var menuOperations = new MenuOperations();
-        return menuOperations.FetchMenuItemsWithFeedback(connection);
+        return _menuOperations.FetchMenuItemsWithFeedback(connection);
     }
 
-    static string HandleMenuFetch(MySqlConnection connection)
+    private string HandleMenuFetch(MySqlConnection connection)
     {
-        var menuOperations = new MenuOperations();
-        return menuOperations.FetchMenu(connection);
+        return _menuOperations.FetchMenu(connection);
     }
 
-    static string HandleAddMenuItem(string[] parts, MySqlConnection connection)
+    private string HandleAddMenuItem(string[] parts, MySqlConnection connection)
     {
         if (parts.Length >= 6)
         {
-            string menuType = parts[1];
-            string itemName = string.Join(" ", parts, 2, parts.Length - 5).Trim('"').Trim();
-            string foodType = parts[parts.Length - 1];
+            var dto = new AddMenuItemDTO
+            {
+                MenuType = parts[1],
+                ItemName = string.Join(" ", parts, 2, parts.Length - 5).Trim('"').Trim(),
+                FoodType = parts[parts.Length - 1]
+            };
 
             if (decimal.TryParse(parts[parts.Length - 3], out decimal price))
             {
                 if (int.TryParse(parts[parts.Length - 2], out int available) && (available == 0 || available == 1))
                 {
-                    var addMenuOperation = new MenuOperations();
-                    return addMenuOperation.AddMenuItemToMenu(connection, menuType, itemName, price, available, foodType);
+                    dto.Price = price;
+                    dto.Available = available;
+
+                    return _menuOperations.AddMenuItemToMenu(connection, dto);
                 }
-                else
-                {
-                    return "Invalid availability format.";
-                }
+                return "Invalid availability format. Availability should be 0 or 1.";
             }
-            else
-            {
-                return "Invalid price format.";
-            }
+            return "Invalid price format.";
         }
-        else
-        {
-            return "Invalid command format.";
-        }
+        return "Invalid command format.";
     }
 
-    static string HandleUpdateMenuItem(string[] parts, MySqlConnection connection)
+    private string HandleUpdateMenuItem(string[] parts, MySqlConnection connection)
     {
         if (parts.Length >= 4)
         {
-            string itemName = string.Join(" ", parts.Skip(1).Take(parts.Length - 3)).Trim('"');
+            var dto = new UpdateMenuItemDTO
+            {
+                ItemName = string.Join(" ", parts.Skip(1).Take(parts.Length - 3)).Trim('"')
+            };
 
             if (decimal.TryParse(parts[parts.Length - 2], out decimal price))
             {
                 if (int.TryParse(parts[parts.Length - 1], out int available) && (available == 0 || available == 1))
                 {
-                    var updateMenuOperation = new MenuOperations();
-                    return updateMenuOperation.UpdateMenuItemInMenu(connection, itemName, price, available);
+                    dto.Price = price;
+                    dto.Available = available;
+
+                    return _menuOperations.UpdateMenuItemInMenu(connection, dto);
                 }
-                else
-                {
-                    return "Invalid availability format.";
-                }
+                return "Invalid availability format.";
             }
-            else
-            {
-                return "Invalid price format.";
-            }
+            return "Invalid price format.";
         }
-        else
-        {
-            return "Invalid command format.";
-        }
+        return "Invalid command format.";
     }
 
-    static string HandleDeleteMenuItem(string[] parts, MySqlConnection connection)
+    private string HandleDeleteMenuItem(string[] parts, MySqlConnection connection)
     {
         if (parts.Length == 2 && int.TryParse(parts[1], out int deleteItemId))
         {
-            var deleteMenuOperation = new MenuOperations();
-            return deleteMenuOperation.DeleteMenuItemFromMenu(connection, deleteItemId);
+            return _menuOperations.DeleteMenuItemFromMenu(connection, deleteItemId);
         }
-        else
-        {
-            return "Invalid delete command format.";
-        }
+        return "Invalid delete command format.";
     }
 
-    static string HandleRolloutCommand(string[] parts, MySqlConnection connection)
+    private static string HandleRolloutCommand(string[] parts, MySqlConnection connection)
     {
         if (parts.Length >= 2)
         {
-            string[] itemIdsStr = new string[parts.Length - 1];
-            Array.Copy(parts, 1, itemIdsStr, 0, parts.Length - 1);
+            string[] itemIdsStr = parts.Skip(1).ToArray();
 
             var rolloutRepository = new RolloutRepository(connection);
             var notificationService = new NotificationService(connection);
@@ -220,39 +157,34 @@ public static class CommandHandler
 
             return rolloutManager.RolloutFoodItemsForNextDay(connection, itemIdsStr);
         }
-        else
-        {
-            return "Invalid rollout command format.";
-        }
+        return "Invalid rollout command format.";
     }
 
-    static string HandleFetchFeedback(MySqlConnection connection)
+    private static string HandleFetchFeedback(MySqlConnection connection)
     {
         FeedbackService feedbackServiceFetch = new FeedbackService();
         return feedbackServiceFetch.FetchFeedbackItems(connection);
     }
 
-    static string HandleFetchEmployeeSelections(MySqlConnection connection)
+    private static string HandleFetchEmployeeSelections(MySqlConnection connection)
     {
-        var employeeSelectionService = new EmployeeSelectionService(connection);
-        return employeeSelectionService.FetchEmployeeSelections();
+        var employeeSelectionRepository = new EmployeeSelectionRepository(connection);
+        var employeeSelectionService = new EmployeeSelectionService(employeeSelectionRepository);
+        return employeeSelectionService.FetchEmployeeSelectionsForToday();
     }
 
-    static string HandleFetchRolloutItems(string[] parts, MySqlConnection connection)
+    private static string HandleFetchRolloutItems(string[] parts, MySqlConnection connection)
     {
         if (parts.Length >= 2)
         {
             string username = parts[1];
-            var rolloutOperations = new RolloutOperations();
-            return rolloutOperations.FetchRolloutItemsWithFeedback(connection, username);
+            var rolloutOperations = new RolloutOperations(connection);
+            return rolloutOperations.FetchRolloutItemsWithFeedback(username);
         }
-        else
-        {
-            return "Invalid command format for fetching rollout items.";
-        }
+        return "Invalid command format for fetching rollout items.";
     }
 
-    static string HandleSelectItem(string[] parts, MySqlConnection connection)
+    private static string HandleSelectItem(string[] parts, MySqlConnection connection)
     {
         if (parts.Length > 1)
         {
@@ -268,10 +200,7 @@ public static class CommandHandler
                     var selectionService = new SelectionService();
                     return selectionService.SelectFoodItemsForNextDay(connection, userId, rolloutIds);
                 }
-                else
-                {
-                    return $"User '{username}' not found.";
-                }
+                return $"User '{username}' not found.";
             }
             catch (FormatException)
             {
@@ -282,27 +211,21 @@ public static class CommandHandler
                 return $"Error selecting items: {ex.Message}";
             }
         }
-        else
-        {
-            return "No rollout items selected.";
-        }
+        return "No rollout items selected.";
     }
 
-    static string HandleSendFeedbackForm(string[] parts, MySqlConnection connection)
+    private static string HandleSendFeedbackForm(string[] parts, MySqlConnection connection)
     {
         if (parts.Length >= 2)
         {
             FeedbackService feedbackServiceForm = new FeedbackService();
-            string foodItem = string.Join(" ", parts, 1, parts.Length - 1);
+            string foodItem = string.Join(" ", parts.Skip(1));
             return feedbackServiceForm.SubmitFeedback(connection, foodItem);
         }
-        else
-        {
-            return "Invalid format for sending feedback form.";
-        }
+        return "Invalid format for sending feedback form.";
     }
 
-    static string HandleSubmitFeedback(string[] parts, MySqlConnection connection)
+    private static string HandleSubmitFeedback(string[] parts, MySqlConnection connection)
     {
         string commandArgs = string.Join(" ", parts.Skip(1));
         Regex feedbackRegex = new Regex("\"(.*?)\"\\s(\\d)\\s\"(.*?)\"");
@@ -316,15 +239,13 @@ public static class CommandHandler
             string comments = match.Groups[3].Value;
 
             Console.WriteLine($"Parsed Feedback - Item: {itemName}, Rating: {rating}, Comments: {comments}");
+
             return feedbackServiceSubmit.FillFeedbackForm(connection, itemName, rating, comments);
         }
-        else
-        {
-            return "Invalid feedback format. Please provide a valid format.";
-        }
+        return "Invalid feedback submission format.";
     }
 
-    static string HandleLogout(string[] parts, MySqlConnection connection)
+    private static string HandleLogout(string[] parts, MySqlConnection connection)
     {
         if (parts.Length >= 2)
         {
@@ -336,33 +257,30 @@ public static class CommandHandler
         }
     }
 
-    static string HandleFetchEmployeeNotification(MySqlConnection connection)
+    private static string HandleFetchEmployeeNotification(MySqlConnection connection)
     {
-        return NotificationService.GetEmployeeNotification((int)RoleEnum.Employee, connection);
+        var notificationService = new NotificationService(connection);
+        return notificationService.GetEmployeeNotification((int)RoleEnum.Employee);
     }
 
-    static string HandleFetchChefNotification(MySqlConnection connection)
+    private static string HandleFetchChefNotification(MySqlConnection connection)
     {
-        return NotificationService.GetChefNotification((int)RoleEnum.Chef, connection);
+        var notificationService = new NotificationService(connection);
+        return notificationService.GetChefNotification((int)RoleEnum.Chef);
     }
 
-    static string HandleFetchNotifications(MySqlConnection connection)
+    private static string HandleFetchNotifications(MySqlConnection connection)
     {
         int userTypeId = 3;
         return DiscardMenu.FetchTodayNotificationsForEmployees(connection, userTypeId);
     }
 
-    static string HandleFetchDiscardMenuItems(MySqlConnection connection)
+    private static string HandleFetchDiscardMenuItems(MySqlConnection connection)
     {
         return DiscardMenu.FetchMenuItemsWithNegativeFeedback(connection);
-
     }
-    static string HandleFetchFeedback_DiscardMenuItems(MySqlConnection connection)
-    {
-        return DiscardMenu.FetchCurrentRolloutFeedbackItems(connection);
 
-    }
-    static string HandleRemoveDiscardMenuItem(string[] parts, MySqlConnection connection)
+    private static string HandleRemoveDiscardMenuItem(string[] parts, MySqlConnection connection)
     {
         if (parts.Length > 1)
         {
@@ -376,10 +294,9 @@ public static class CommandHandler
             return "Invalid command format for removing discard menu item.";
         }
 
-
     }
 
-    static string HandleGetDetailedFeedback(string[] parts, MySqlConnection connection)
+    private static string HandleGetDetailedFeedback(string[] parts, MySqlConnection connection)
     {
         if (parts.Length > 1)
         {
@@ -392,7 +309,7 @@ public static class CommandHandler
         }
     }
 
-    static string HandleRollOutFeedback(string[] parts, MySqlConnection connection)
+    private static string HandleRollOutFeedback(string[] parts, MySqlConnection connection)
     {
         if (parts.Length > 1)
         {
@@ -405,7 +322,7 @@ public static class CommandHandler
         }
     }
 
-    static string HandleSubmitDetailedFeedback(string[] parts, MySqlConnection connection)
+    private static string HandleSubmitDetailedFeedback(string[] parts, MySqlConnection connection)
     {
         if (parts.Length >= 5)
         {
@@ -433,7 +350,7 @@ public static class CommandHandler
         }
     }
 
-    static string HandleUpdateProfile(string[] parts, MySqlConnection connection)
+    private static string HandleUpdateProfile(string[] parts, MySqlConnection connection)
     {
         if (parts.Length >= 6)
         {
@@ -452,14 +369,28 @@ public static class CommandHandler
                     string spiceLevel = preferencesParts[1];
                     string cuisinePreference = preferencesParts[2];
                     bool sweetTooth = preferencesParts[3].Equals("true", StringComparison.OrdinalIgnoreCase);
+
+
                     var profileRepository = new EmployeeProfileRepository();
                     var profileOperations = new EmployeeProfileOperations();
+
+
                     int userId = profileRepository.GetUserIdByUsername(connection, username);
                     Console.WriteLine($"Username: {username}, UserID: {userId}");
 
                     if (userId != -1)
                     {
-                        return profileOperations.UpdateOrCreateProfile(connection, userId, preference, spiceLevel, cuisinePreference, sweetTooth);
+
+                        var profileData = new UserProfile
+                        {
+                            UserID = userId,
+                            Preference = preference,
+                            SpiceLevel = spiceLevel,
+                            CuisinePreference = cuisinePreference,
+                            SweetTooth = sweetTooth
+                        };
+
+                        return profileOperations.SaveProfile(connection, profileData);
                     }
                     else
                     {
@@ -480,10 +411,9 @@ public static class CommandHandler
         {
             return "Invalid command format for updating employee profile.";
         }
-
     }
 
-    static string HandleFetchDetailedFeedbackQuestions(string[] parts, MySqlConnection connection)
+    private static string HandleFetchDetailedFeedbackQuestions(string[] parts, MySqlConnection connection)
     {
         if (parts.Length > 1)
         {
@@ -494,6 +424,11 @@ public static class CommandHandler
         {
             return "Invalid command format for fetching detailed feedback questions.";
         }
+    }
+
+    private static string HandleFetchFeedback_DiscardMenuItems(MySqlConnection connection)
+    {
+        return DiscardMenu.FetchCurrentRolloutFeedbackItems(connection);
     }
     private static string[] ParseFeedbackCommand(string commandText)
     {

@@ -1,11 +1,10 @@
-﻿
-using System;
-using System.IO;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
+using CafeteriaServer.Services;
+using CafeteriaServer.Operations;
 
 namespace CafeteriaServer
 {
@@ -18,6 +17,14 @@ namespace CafeteriaServer
 
             try
             {
+                var menuService = new MenuService();
+                var feedbackService = new FeedbackService();
+                var recommendationService = new RecommendationService();
+                var selectionService = new SelectionService();
+
+                var menuOperations = new MenuOperations(menuService, feedbackService, recommendationService, selectionService);
+                var commandHandler = new CommandHandler(menuOperations); // Instantiate CommandHandler with menuOperations
+
                 TcpListener server = new TcpListener(IPAddress.Any, 13000);
                 connection.Open();
                 Console.WriteLine("Connected to MySQL database.");
@@ -36,7 +43,7 @@ namespace CafeteriaServer
                     string data = Encoding.UTF8.GetString(buffer, 0, bytesRead).Trim();
                     Console.WriteLine("Received from client: {0}", data);
 
-                    string response = CommandHandler.ProcessCommand(data, connection);
+                    string response = commandHandler.ProcessCommand(data, connection);
 
                     SendResponseToClient(stream, response);
                     Console.WriteLine("Sent to client: {0}", response);
@@ -58,7 +65,6 @@ namespace CafeteriaServer
                 }
             }
         }
-
 
         static void SendResponseToClient(NetworkStream stream, string response)
         {

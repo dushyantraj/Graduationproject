@@ -1,10 +1,28 @@
 using System;
+using System.Collections.Generic;
 using CafeteriaClient.Operations;
 
 namespace CafeteriaClient.Menus
 {
     public class AdminMenu : IMenu
     {
+        private readonly MenuOperations _menuOperations;
+        private readonly Dictionary<string, Action> _menuActions;
+
+        public AdminMenu()
+        {
+            _menuOperations = new MenuOperations();
+            _menuActions = new Dictionary<string, Action>
+            {
+                { "1", () => _menuOperations.FetchMenuItems() },
+                { "2", () => _menuOperations.AddMenuItem() },
+                { "3", () => _menuOperations.UpdateMenuItem() },
+                { "4", () => _menuOperations.DeleteMenuItem() },
+                { "5", () => _menuOperations.DiscardFoodItem() },
+                { "6", Program.Logout }
+            };
+        }
+
         public void Show()
         {
             while (true)
@@ -38,31 +56,15 @@ namespace CafeteriaClient.Menus
 
         private bool HandleMenuChoice(string choice)
         {
-            switch (choice)
+            if (_menuActions.TryGetValue(choice, out var action))
             {
-                case "1":
-                    MenuOperations.FetchMenuItems();
-                    break;
-                case "2":
-                    MenuOperations.AddMenuItem();
-                    break;
-                case "3":
-                    MenuOperations.UpdateMenuItem();
-                    break;
-                case "4":
-                    MenuOperations.DeleteMenuItem();
-                    break;
-                case "5":
-                    MenuOperations.DiscardFoodItem();
-                    break;
-                case "6":
-                    Program.Logout();
-                    return false;
-                default:
-                    Console.WriteLine("Invalid choice. Try again.");
-                    break;
+                action();
             }
-            return true;
+            else
+            {
+                Console.WriteLine("Invalid choice. Try again.");
+            }
+            return choice != "6"; // Return false only if the choice is to logout
         }
     }
 }

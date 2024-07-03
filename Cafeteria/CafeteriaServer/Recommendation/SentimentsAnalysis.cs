@@ -51,7 +51,6 @@ namespace CafeteriaServer.Recommendation
 
             return DetermineSentimentLabel(positiveCount, negativeCount, neutralCount);
         }
-
         private static int CalculateSentimentScore(string comment)
         {
             int sentimentScore = 0;
@@ -70,18 +69,25 @@ namespace CafeteriaServer.Recommendation
 
                 if (SentimentWords.PositiveWords.Contains(word))
                 {
-                    sentimentScore += isNegated ? -1 : 1;
+                    if (isNegated)
+                        sentimentScore -= 1;  // If negated, deduct score for positive words
+                    else
+                        sentimentScore += 1;  // Otherwise, add score for positive words
                     isNegated = false;
                 }
                 else if (SentimentWords.NegativeWords.Contains(word))
                 {
-                    sentimentScore += isNegated ? 1 : -1;
+                    if (isNegated)
+                        sentimentScore += 1;  // If negated, increase score for negative words
+                    else
+                        sentimentScore -= 1;  // Otherwise, deduct score for negative words
                     isNegated = false;
                 }
             }
 
             return sentimentScore;
         }
+
 
         private static string DetermineSentimentLabel(int positiveCount, int negativeCount, int neutralCount)
         {

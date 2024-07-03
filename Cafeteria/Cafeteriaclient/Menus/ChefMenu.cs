@@ -1,10 +1,31 @@
 using System;
+using System.Collections.Generic;
 using CafeteriaClient.Operations;
 
 namespace CafeteriaClient.Menus
 {
     public class ChefMenu : IMenu
     {
+        private readonly MenuOperations _menuOperations;
+        private readonly ChefOperations _chefOperations;
+        private readonly Dictionary<string, Action> _menuActions;
+
+        public ChefMenu()
+        {
+            _menuOperations = new MenuOperations();
+            _chefOperations = new ChefOperations();
+            _menuActions = new Dictionary<string, Action>
+            {
+                { "1", () => _menuOperations.FetchMenuItems() },
+                { "2", () => _chefOperations.RolloutFoodItemForNextDay() },
+                { "3", EmployeeOperations.ViewEmployeeSelections },
+                { "4", () => _chefOperations.FetchNotificationForChef() },
+                { "5", FeedbackOperations.SendFeedbackForm },
+                { "6", _menuOperations.DiscardFoodItem },
+                { "7", Program.Logout }
+            };
+        }
+
         public void Show()
         {
             while (true)
@@ -39,34 +60,15 @@ namespace CafeteriaClient.Menus
 
         private bool HandleMenuChoice(string choice)
         {
-            switch (choice)
+            if (_menuActions.TryGetValue(choice, out var action))
             {
-                case "1":
-                    MenuOperations.FetchMenuItems();
-                    break;
-                case "2":
-                    ChefOperations.RolloutFoodItemForNextDay();
-                    break;
-                case "3":
-                    EmployeeOperations.ViewEmployeeSelections();
-                    break;
-                case "4":
-                    ChefOperations.FetchNotificationForChef();
-                    break;
-                case "5":
-                    FeedbackOperations.SendFeedbackForm();
-                    break;
-                case "6":
-                    MenuOperations.DiscardFoodItem();
-                    break;
-                case "7":
-                    Program.Logout();
-                    return false;
-                default:
-                    Console.WriteLine("Invalid choice. Try again.");
-                    break;
+                action();
             }
-            return true;
+            else
+            {
+                Console.WriteLine("Invalid choice. Try again.");
+            }
+            return choice != "7"; // Return false only if the choice is to logout
         }
     }
 }

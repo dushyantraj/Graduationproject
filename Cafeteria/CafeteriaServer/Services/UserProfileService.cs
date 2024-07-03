@@ -6,14 +6,21 @@ namespace CafeteriaServer.Services
 {
     public class UserProfileService
     {
-        public UserProfile FetchUserProfile(MySqlConnection connection, int userId)
+        private readonly MySqlConnection _connection;
+
+        public UserProfileService(MySqlConnection connection)
+        {
+            _connection = connection;
+        }
+
+        public UserProfile FetchUserProfile(int userId)
         {
             string query = @"
                 SELECT ProfileID, UserID, Preference, SpiceLevel, CuisinePreference, SweetTooth
                 FROM EmployeeProfiles
                 WHERE UserID = @userId";
 
-            using (MySqlCommand cmd = new MySqlCommand(query, connection))
+            using (MySqlCommand cmd = new MySqlCommand(query, _connection))
             {
                 cmd.Parameters.AddWithValue("@userId", userId);
 
@@ -21,20 +28,25 @@ namespace CafeteriaServer.Services
                 {
                     if (reader.Read())
                     {
-                        return new UserProfile
-                        {
-                            ProfileID = reader.GetInt32("ProfileID"),
-                            UserID = reader.GetInt32("UserID"),
-                            Preference = reader.GetString("Preference"),
-                            SpiceLevel = reader.GetString("SpiceLevel"),
-                            CuisinePreference = reader.GetString("CuisinePreference"),
-                            SweetTooth = reader.GetBoolean("SweetTooth")
-                        };
+                        return MapUserProfile(reader);
                     }
                 }
             }
 
             return null;
+        }
+
+        private UserProfile MapUserProfile(MySqlDataReader reader)
+        {
+            return new UserProfile
+            {
+                ProfileID = reader.GetInt32("ProfileID"),
+                UserID = reader.GetInt32("UserID"),
+                Preference = reader.GetString("Preference"),
+                SpiceLevel = reader.GetString("SpiceLevel"),
+                CuisinePreference = reader.GetString("CuisinePreference"),
+                SweetTooth = reader.GetBoolean("SweetTooth")
+            };
         }
     }
 }

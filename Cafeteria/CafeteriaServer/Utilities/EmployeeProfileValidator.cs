@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
-
 namespace CafeteriaServer.Utilities
-
 {
-
-
     public class EmployeeProfileValidator
     {
         public bool IsValidPreference(string preference)

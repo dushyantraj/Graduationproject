@@ -1,4 +1,3 @@
-
 using System;
 using CafeteriaClient.Services;
 
@@ -6,6 +5,8 @@ namespace CafeteriaClient.Authentications
 {
     public static class Authentication
     {
+        private static ServerCommunicator serverCommunicator = new ServerCommunicator();
+
         public static string Login(string username, string password)
         {
             if (IsInputInvalid(username, password))
@@ -18,7 +19,7 @@ namespace CafeteriaClient.Authentications
 
             try
             {
-                return ServerCommunicator.SendCommandToServer(command);
+                return serverCommunicator.SendCommandToServer(command);
             }
             catch (Exception ex)
             {
