@@ -30,16 +30,30 @@ namespace CafeteriaClient.Utilities
             };
         }
 
-        public static (string ItemName, decimal Price, int Availability) ReadUpdateDetails()
+        public static (string ItemName, decimal Price, int Availability, string SpiceLevel) ReadUpdateDetails()
         {
             Console.Write("Enter the food item name to update: ");
             string itemName = Console.ReadLine().Trim();
 
             decimal price = ConsoleHelper.ReadDecimalFromConsole("Enter the new price: ");
-
             int availability = ConsoleHelper.ReadAvailability();
 
-            return (ItemName: itemName, Price: price, Availability: availability);
+            Console.Write("Enter the spice level (High, Medium, Low): ");
+            string spiceLevel;
+            while (true)
+            {
+                spiceLevel = Console.ReadLine().Trim();
+                if (spiceLevel.Equals("High", StringComparison.OrdinalIgnoreCase) ||
+                    spiceLevel.Equals("Medium", StringComparison.OrdinalIgnoreCase) ||
+                    spiceLevel.Equals("Low", StringComparison.OrdinalIgnoreCase))
+                {
+                    break;
+                }
+                Console.Write("Invalid input. Please enter spice level as High, Medium, or Low: ");
+            }
+
+            return (ItemName: itemName, Price: price, Availability: availability, SpiceLevel: spiceLevel);
         }
+
     }
 }

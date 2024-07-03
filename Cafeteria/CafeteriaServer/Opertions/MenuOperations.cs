@@ -141,18 +141,5 @@ namespace CafeteriaServer.Operations
         }
     }
 
-    public class UpdateMenuItemDTO
-    {
-        public string ItemName { get; set; }
-        public decimal Price { get; set; }
-        public int Available { get; set; }
-    }
-    public class AddMenuItemDTO
-    {
-        public string MenuType { get; set; }
-        public string ItemName { get; set; }
-        public decimal Price { get; set; }
-        public int Available { get; set; }
-        public string FoodType { get; set; }
-    }
+
 }

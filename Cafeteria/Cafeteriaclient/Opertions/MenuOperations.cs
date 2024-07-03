@@ -70,7 +70,7 @@ namespace CafeteriaClient.Operations
             try
             {
                 var newItem = MenuItemDetailsReader.ReadMenuItemDetails();
-                string request = $"{ServerCommands.AddMenuItem} {newItem}";
+                string request = $"{ServerCommands.AddMenuItem} {newItem.MenuType} {newItem.Name} {newItem.Price} {newItem.Availability} {newItem.FoodType}";
                 string response = serverCommunicator.SendCommandToServer(request);
                 Console.WriteLine("Received from server: {0}", response);
             }
@@ -85,7 +85,7 @@ namespace CafeteriaClient.Operations
             try
             {
                 var updateDetails = MenuItemDetailsReader.ReadUpdateDetails();
-                string request = $"{ServerCommands.UpdateMenuItem} {updateDetails}";
+                string request = $"{ServerCommands.UpdateMenuItem} {updateDetails.ItemName} {updateDetails.Price} {updateDetails.Availability} {updateDetails.SpiceLevel}";
                 string response = serverCommunicator.SendCommandToServer(request);
                 Console.WriteLine("Received from server: {0}", response);
             }

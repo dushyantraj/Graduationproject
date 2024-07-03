@@ -118,7 +118,7 @@ namespace CafeteriaServer.Operations
             StringBuilder response = new StringBuilder();
 
             // Recommended items
-            
+
             foreach (var item in recommendedItems)
             {
                 response.AppendLine("Items Match with Your Preferences:");

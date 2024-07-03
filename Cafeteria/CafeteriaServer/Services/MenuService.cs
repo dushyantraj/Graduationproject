@@ -61,16 +61,18 @@ namespace CafeteriaServer.Services
 
         public string UpdateMenuItem(MySqlConnection connection, UpdateMenuItemDTO dto)
         {
-            const string query = "UPDATE MenuItem SET price = @price, available = @available WHERE name = @itemName";
+            const string query = "UPDATE MenuItem SET price = @price, available = @available, spice_level = @spiceLevel WHERE name = @itemName";
             using (MySqlCommand cmd = new MySqlCommand(query, connection))
             {
                 cmd.Parameters.AddWithValue("@itemName", dto.ItemName);
                 cmd.Parameters.AddWithValue("@price", dto.Price);
                 cmd.Parameters.AddWithValue("@available", dto.Available);
+                cmd.Parameters.AddWithValue("@spiceLevel", dto.SpiceLevel); // Include spice level as string
 
                 return cmd.ExecuteNonQuery() > 0 ? "Item updated successfully." : "Failed to update item.";
             }
         }
+
 
         public string DeleteMenuItem(MySqlConnection connection, int itemId)
         {

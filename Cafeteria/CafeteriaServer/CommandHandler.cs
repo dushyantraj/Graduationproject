@@ -9,7 +9,7 @@ using CafeteriaServer.Services;
 using CafeteriaServer.Repositories;
 using CafeteriaServer.Utilities;
 using CafeteriaServer.Models;
-
+using CafeteriaServer.Models.DTO;
 public class CommandHandler
 {
     private readonly MenuOperations _menuOperations;
@@ -109,24 +109,30 @@ public class CommandHandler
         }
         return "Invalid command format.";
     }
-
     private string HandleUpdateMenuItem(string[] parts, MySqlConnection connection)
     {
-        if (parts.Length >= 4)
+        if (parts.Length >= 5)
         {
+            // Join parts to get the item name, which may include spaces, and trim quotes
             var dto = new UpdateMenuItemDTO
             {
-                ItemName = string.Join(" ", parts.Skip(1).Take(parts.Length - 3)).Trim('"')
+                ItemName = string.Join(" ", parts.Skip(1).Take(parts.Length - 4)).Trim('"')
             };
 
-            if (decimal.TryParse(parts[parts.Length - 2], out decimal price))
+            if (decimal.TryParse(parts[parts.Length - 3], out decimal price))
             {
-                if (int.TryParse(parts[parts.Length - 1], out int available) && (available == 0 || available == 1))
+                if (int.TryParse(parts[parts.Length - 2], out int available) && (available == 0 || available == 1))
                 {
-                    dto.Price = price;
-                    dto.Available = available;
+                    string spiceLevel = parts[parts.Length - 1].Trim();
+                    if (IsValidSpiceLevel(spiceLevel))
+                    {
+                        dto.Price = price;
+                        dto.Available = available;
+                        dto.SpiceLevel = spiceLevel;
 
-                    return _menuOperations.UpdateMenuItemInMenu(connection, dto);
+                        return _menuOperations.UpdateMenuItemInMenu(connection, dto);
+                    }
+                    return "Invalid spice level format.";
                 }
                 return "Invalid availability format.";
             }
@@ -134,6 +140,14 @@ public class CommandHandler
         }
         return "Invalid command format.";
     }
+
+    // Helper method to validate spice level
+    private bool IsValidSpiceLevel(string spiceLevel)
+    {
+        var validSpiceLevels = new[] { "High", "Medium", "Low" };
+        return validSpiceLevels.Contains(spiceLevel, StringComparer.OrdinalIgnoreCase);
+    }
+
 
     private string HandleDeleteMenuItem(string[] parts, MySqlConnection connection)
     {
