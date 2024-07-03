@@ -118,15 +118,16 @@ namespace CafeteriaServer.Operations
             StringBuilder response = new StringBuilder();
 
             // Recommended items
-            response.AppendLine("Recommended Items with Positive Sentiment:");
+            
             foreach (var item in recommendedItems)
             {
+                response.AppendLine("Items Match with Your Preferences:");
                 response.AppendLine($"Rollout ID: {item.RolloutId}, Item Name: {item.ItemName}, Price: {item.Price:F2}, Available: {item.Available}");
                 response.AppendLine($"  Rating: {item.AverageRating:F1}, Overall Sentiment: {item.OverallSentiment}, Recommendation: {item.Recommendation}");
             }
 
             // Other items
-            response.AppendLine("\nOther Items that rollout:");
+            response.AppendLine("\nTodays Items:\n");
             foreach (var item in allRolloutItems)
             {
                 // Skip items already listed as recommended
@@ -136,7 +137,6 @@ namespace CafeteriaServer.Operations
                 response.AppendLine($"Rollout ID: {item.Key}, Item Name: {item.Value.ItemName}, Price: {item.Value.Price:F2}, Available: {item.Value.Available}");
             }
 
-            response.AppendLine("\nEnter the Rollout ID of the item you want to select:");
 
             return response.ToString();
         }
