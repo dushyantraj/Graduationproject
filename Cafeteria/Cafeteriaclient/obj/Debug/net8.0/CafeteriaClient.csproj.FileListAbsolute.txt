@@ -1,0 +1,15 @@
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/bin/Debug/net8.0/CafeteriaClient
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/bin/Debug/net8.0/CafeteriaClient.deps.json
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/bin/Debug/net8.0/CafeteriaClient.runtimeconfig.json
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/bin/Debug/net8.0/CafeteriaClient.dll
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/bin/Debug/net8.0/CafeteriaClient.pdb
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/obj/Debug/net8.0/CafeteriaClient.GeneratedMSBuildEditorConfig.editorconfig
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/obj/Debug/net8.0/CafeteriaClient.AssemblyInfoInputs.cache
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/obj/Debug/net8.0/CafeteriaClient.AssemblyInfo.cs
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/obj/Debug/net8.0/CafeteriaClient.csproj.CoreCompileInputs.cache
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/obj/Debug/net8.0/CafeteriaClient.sourcelink.json
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/obj/Debug/net8.0/CafeteriaClient.dll
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/obj/Debug/net8.0/refint/CafeteriaClient.dll
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/obj/Debug/net8.0/CafeteriaClient.pdb
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/obj/Debug/net8.0/CafeteriaClient.genruntimeconfig.cache
+/home/dushyantrajsharma/Graduationproject/Cafeteria/Cafeteriaclient/obj/Debug/net8.0/ref/CafeteriaClient.dll
