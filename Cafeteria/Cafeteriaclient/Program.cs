@@ -21,7 +21,7 @@ namespace CafeteriaClient
                 }
                 else
                 {
-                    break; 
+                    break;
                 }
             }
         }

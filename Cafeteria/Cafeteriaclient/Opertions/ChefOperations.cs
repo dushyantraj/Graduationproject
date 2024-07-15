@@ -34,7 +34,7 @@ namespace CafeteriaClient.Operations
                 var menuOperations = new MenuOperations();
                 var rolloutManager = new RolloutManager();
 
-             
+
                 menuOperations.FetchMenuItemsWithRecommendation();
 
                 string[] selectedItems = rolloutManager.GetItemSelectionsFromUser();

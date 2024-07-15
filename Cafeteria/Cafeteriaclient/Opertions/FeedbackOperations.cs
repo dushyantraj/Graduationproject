@@ -101,8 +101,8 @@ namespace CafeteriaClient.Operations
                 int rating = ReadRatingFromConsole();
                 string comments = PromptUserForInput("Enter your comments: ");
 
-                
-               
+
+
                 string request = BuildFeedbackRequest(ServerCommands.SubmitFeedback, foodItem, rating, comments);
                 response = serverCommunicator.SendCommandToServer(request);
 

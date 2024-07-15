@@ -66,19 +66,19 @@ namespace CafeteriaClient.Operations
         }
 
         public void AddMenuItem()
-{
-    try
-    {
-        var newItem = MenuItemDetailsReader.ReadMenuItemDetails();
-        string request = $"{ServerCommands.AddMenuItem} {newItem.MenuType} \"{newItem.Name}\" {newItem.Price} {newItem.Availability} {newItem.SpiceLevel} {newItem.CuisinePreference} {newItem.FoodType}";
-        string response = serverCommunicator.SendCommandToServer(request);
-        Console.WriteLine("Received from server: {0}", response);
-    }
-    catch (Exception ex)
-    {
-        HandleError("Error adding menu item", ex);
-    }
-}
+        {
+            try
+            {
+                var newItem = MenuItemDetailsReader.ReadMenuItemDetails();
+                string request = $"{ServerCommands.AddMenuItem} {newItem.MenuType} \"{newItem.Name}\" {newItem.Price} {newItem.Availability} {newItem.SpiceLevel} {newItem.CuisinePreference} {newItem.FoodType}";
+                string response = serverCommunicator.SendCommandToServer(request);
+                Console.WriteLine("Received from server: {0}", response);
+            }
+            catch (Exception ex)
+            {
+                HandleError("Error adding menu item", ex);
+            }
+        }
 
 
         public void UpdateMenuItem()
